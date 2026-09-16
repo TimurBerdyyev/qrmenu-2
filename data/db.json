@@ -1,0 +1,407 @@
+{
+  "admin": {
+    "password": "admin123"
+  },
+  "waiters": [
+    {
+      "id": "w1",
+      "name": "Анна",
+      "pin": "1111",
+      "active": true
+    },
+    {
+      "id": "w2",
+      "name": "Игорь",
+      "pin": "2222",
+      "active": true
+    }
+  ],
+  "categories": [
+    {
+      "id": "c1",
+      "name": "Кофе",
+      "sortOrder": 1
+    },
+    {
+      "id": "c2",
+      "name": "Десерты",
+      "sortOrder": 2
+    },
+    {
+      "id": "c3",
+      "name": "Завтраки",
+      "sortOrder": 3
+    }
+  ],
+  "menuItems": [
+    {
+      "id": "m1",
+      "categoryId": "c1",
+      "name": "Эспрессо",
+      "price": 120,
+      "available": true
+    },
+    {
+      "id": "m2",
+      "categoryId": "c1",
+      "name": "Капучино",
+      "price": 180,
+      "available": true
+    },
+    {
+      "id": "m3",
+      "categoryId": "c1",
+      "name": "Латте",
+      "price": 190,
+      "available": true
+    },
+    {
+      "id": "m4",
+      "categoryId": "c2",
+      "name": "Чизкейк",
+      "price": 250,
+      "available": true
+    },
+    {
+      "id": "m5",
+      "categoryId": "c2",
+      "name": "Тирамису",
+      "price": 270,
+      "available": true
+    },
+    {
+      "id": "m6",
+      "categoryId": "c3",
+      "name": "Омлет",
+      "price": 220,
+      "available": true
+    },
+    {
+      "id": "m7",
+      "categoryId": "c3",
+      "name": "Сырники",
+      "price": 240,
+      "available": true
+    }
+  ],
+  "tables": [
+    {
+      "id": "t1",
+      "name": "Стол 1"
+    },
+    {
+      "id": "t2",
+      "name": "Стол 2"
+    },
+    {
+      "id": "t3",
+      "name": "Стол 3"
+    },
+    {
+      "id": "t4",
+      "name": "Стол 4"
+    },
+    {
+      "id": "t5",
+      "name": "Стол 5"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord_mu3qti44kfx44",
+      "waiterId": "w1",
+      "waiterName": "Анна",
+      "tableId": "t1",
+      "tableName": "Стол 1",
+      "status": "closed",
+      "createdAt": "2026-09-16T06:52:05.236Z",
+      "updatedAt": "2026-09-16T06:52:05.241Z",
+      "closedAt": "2026-09-16T06:52:05.245Z",
+      "items": [
+        {
+          "id": "oi_mu3qti44kercq",
+          "menuItemId": "m1",
+          "name": "Эспрессо",
+          "price": 120,
+          "qty": 2,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3s8hms4veis",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t1",
+      "tableName": "Стол 1",
+      "status": "closed",
+      "createdAt": "2026-09-16T07:31:44.068Z",
+      "updatedAt": "2026-09-16T07:32:05.880Z",
+      "closedAt": "2026-09-16T07:33:39.611Z",
+      "items": [
+        {
+          "id": "oi_mu3s8hmskhd4i",
+          "menuItemId": "m2",
+          "name": "Капучино",
+          "price": 180,
+          "qty": 1,
+          "status": "cooking"
+        },
+        {
+          "id": "oi_mu3s8hms99tvq",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "cooking"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3sj3kv08hft",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t1",
+      "tableName": "Стол 1",
+      "status": "closed",
+      "createdAt": "2026-09-16T07:39:59.071Z",
+      "updatedAt": "2026-09-16T07:40:06.832Z",
+      "closedAt": "2026-09-16T07:55:13.403Z",
+      "items": [
+        {
+          "id": "oi_mu3sj3kv0lieq",
+          "menuItemId": "m1",
+          "name": "Эспрессо",
+          "price": 120,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3sj3kvoay61",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3sj3kvmtqvk",
+          "menuItemId": "m2",
+          "name": "Капучино",
+          "price": 180,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3sy86u4gx1t",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t5",
+      "tableName": "Стол 5",
+      "status": "closed",
+      "createdAt": "2026-09-16T07:51:44.886Z",
+      "updatedAt": "2026-09-16T07:51:49.737Z",
+      "closedAt": "2026-09-16T07:52:19.179Z",
+      "items": [
+        {
+          "id": "oi_mu3sy86ul83j5",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3sy86uzgz2h",
+          "menuItemId": "m2",
+          "name": "Капучино",
+          "price": 180,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3sy86uw677a",
+          "menuItemId": "m7",
+          "name": "Сырники",
+          "price": 240,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3sz4t5vhjz5",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t3",
+      "tableName": "Стол 3",
+      "status": "closed",
+      "createdAt": "2026-09-16T07:52:27.161Z",
+      "updatedAt": "2026-09-16T07:52:30.442Z",
+      "closedAt": "2026-09-16T07:55:18.481Z",
+      "items": [
+        {
+          "id": "oi_mu3sz4t5ypn08",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3sz4t5uo4ss",
+          "menuItemId": "m4",
+          "name": "Чизкейк",
+          "price": 250,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3t2xvbvyclo",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t4",
+      "tableName": "Стол 4",
+      "status": "closed",
+      "createdAt": "2026-09-16T07:55:24.791Z",
+      "updatedAt": "2026-09-16T07:55:27.641Z",
+      "closedAt": "2026-09-16T08:12:32.531Z",
+      "items": [
+        {
+          "id": "oi_mu3t2xvbzl7zc",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3t2xvbyw0gl",
+          "menuItemId": "m5",
+          "name": "Тирамису",
+          "price": 270,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3tp3fzisamx",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t1",
+      "tableName": "Стол 1",
+      "status": "closed",
+      "createdAt": "2026-09-16T08:12:38.447Z",
+      "updatedAt": "2026-09-16T08:13:13.528Z",
+      "closedAt": "2026-09-16T08:13:17.219Z",
+      "items": [
+        {
+          "id": "oi_mu3tp3fzaehf9",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3tp3fz0a2jg",
+          "menuItemId": "m7",
+          "name": "Сырники",
+          "price": 240,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3tpbfi8x0fs",
+          "menuItemId": "m6",
+          "name": "Омлет",
+          "price": 220,
+          "qty": 2,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3tpr99pzwyg",
+          "menuItemId": "m6",
+          "name": "Омлет",
+          "price": 220,
+          "qty": 2,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3tpr99ondq5",
+          "menuItemId": "m4",
+          "name": "Чизкейк",
+          "price": 250,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3tq9afa1smn",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t1",
+      "tableName": "Стол 1",
+      "status": "closed",
+      "createdAt": "2026-09-16T08:13:32.679Z",
+      "updatedAt": "2026-09-16T08:13:48.148Z",
+      "closedAt": "2026-09-16T08:14:35.835Z",
+      "items": [
+        {
+          "id": "oi_mu3tq9afwepcl",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ord_mu3tqdoxsabmg",
+      "waiterId": "w2",
+      "waiterName": "Игорь",
+      "tableId": "t2",
+      "tableName": "Стол 2",
+      "status": "closed",
+      "createdAt": "2026-09-16T08:13:38.385Z",
+      "updatedAt": "2026-09-16T08:13:57.366Z",
+      "closedAt": "2026-09-16T08:14:30.415Z",
+      "items": [
+        {
+          "id": "oi_mu3tqdoxw0vwu",
+          "menuItemId": "m3",
+          "name": "Латте",
+          "price": 190,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3tqdoxlni39",
+          "menuItemId": "m7",
+          "name": "Сырники",
+          "price": 240,
+          "qty": 1,
+          "status": "ready"
+        },
+        {
+          "id": "oi_mu3tqi9bya8a8",
+          "menuItemId": "m2",
+          "name": "Капучино",
+          "price": 180,
+          "qty": 1,
+          "status": "ready"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "createdAt": "2026-09-16T06:19:20.633Z"
+  }
+}

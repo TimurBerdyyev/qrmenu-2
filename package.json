@@ -1,0 +1,11 @@
+{
+  "name": "cafe-pos",
+  "version": "0.1.0",
+  "description": "Локальная POS-система для кафе: официанты, кухня, админка",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {},
+  "license": "UNLICENSED"
+}

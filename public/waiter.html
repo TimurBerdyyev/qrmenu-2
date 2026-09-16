@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Официант — Cafe POS</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<!-- ВХОД ПО PIN -->
+<div id="view-login" class="center-screen">
+  <div class="role-card">
+    <h1>Вход официанта</h1>
+    <p class="sub">Введите ваш PIN-код</p>
+    <div class="pin-dots" id="pinDots"></div>
+    <div id="pinError"></div>
+    <div class="pin-pad" id="pinPad">
+      <button data-d="1">1</button><button data-d="2">2</button><button data-d="3">3</button>
+      <button data-d="4">4</button><button data-d="5">5</button><button data-d="6">6</button>
+      <button data-d="7">7</button><button data-d="8">8</button><button data-d="9">9</button>
+      <button data-action="back">⌫</button><button data-d="0">0</button><button data-action="clear">C</button>
+    </div>
+    <p class="sub" style="margin-top:18px;"><a href="/">← к выбору роли</a></p>
+  </div>
+</div>
+
+<!-- СТОЛЫ -->
+<div id="view-tables" hidden>
+  <div class="app-header">
+    <div>
+      <h1 id="waiterGreeting">Официант</h1>
+      <div class="sub">Выберите стол</div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" id="btnLogout">Сменить официанта</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="grid tables-grid" id="tablesGrid"></div>
+  </div>
+</div>
+
+<!-- ЗАКАЗ -->
+<div id="view-order" hidden>
+  <div class="app-header">
+    <div>
+      <h1 id="orderTableTitle">Стол</h1>
+      <div class="sub" id="orderWaiterSub"></div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" id="btnBackToTables">← Столы</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="order-layout">
+      <div>
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="grid menu-grid" id="menuGrid"></div>
+      </div>
+      <div class="current-order card">
+        <div class="section-title">Текущий заказ</div>
+        <div id="cartLines"></div>
+        <div class="order-total">
+          <span>Итого</span>
+          <span id="cartTotal">0 ₽</span>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" id="btnSubmitCart" disabled>Отправить на кухню</button>
+
+        <div id="submittedBlock" hidden>
+          <div class="section-title">На кухне</div>
+          <div class="item-status-list" id="submittedList"></div>
+          <button class="btn btn-block" style="margin-top:12px;" id="btnCloseOrder">Закрыть заказ и пробить чек</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ЧЕК -->
+<div id="view-receipt" hidden>
+  <div class="app-header no-print">
+    <h1>Чек</h1>
+    <div class="header-right">
+      <button class="btn btn-ghost" id="btnReceiptBack">К столам</button>
+      <button class="btn btn-primary" id="btnPrint">🖨 Печать</button>
+    </div>
+  </div>
+  <div class="receipt" id="receiptBody"></div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/waiter.js"></script>
+</body>
+</html>

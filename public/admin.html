@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Админка — Cafe POS</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<!-- ВХОД -->
+<div id="view-login" class="center-screen">
+  <div class="role-card">
+    <h1>Вход в админку</h1>
+    <p class="sub">Введите пароль администратора</p>
+    <div class="form-row">
+      <input type="password" id="adminPassword" placeholder="Пароль" />
+    </div>
+    <div id="loginError"></div>
+    <button class="btn btn-primary btn-block btn-lg" id="btnAdminLogin">Войти</button>
+    <p class="sub" style="margin-top:18px;"><a href="/">← к выбору роли</a></p>
+  </div>
+</div>
+
+<!-- ОСНОВНОЕ -->
+<div id="view-main" hidden>
+  <div class="app-header">
+    <div>
+      <h1>📊 Админка Cafe POS</h1>
+      <div class="sub">Управление кафе</div>
+    </div>
+    <div class="header-right">
+      <a class="btn btn-ghost" href="/">← к выбору роли</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="admin-tabs">
+      <button class="admin-tab" data-tab="dashboard">Выручка сегодня</button>
+      <button class="admin-tab" data-tab="menu">Меню</button>
+      <button class="admin-tab" data-tab="waiters">Официанты</button>
+      <button class="admin-tab" data-tab="tables">Столы</button>
+      <button class="admin-tab" data-tab="reports">Месячный отчёт</button>
+      <button class="admin-tab" data-tab="settings">Настройки</button>
+    </div>
+    <div id="tabContent"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>
