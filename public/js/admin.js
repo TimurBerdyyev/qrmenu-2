@@ -5,6 +5,80 @@
   const tabs = document.querySelectorAll('.admin-tab');
   let activeTab = 'dashboard';
 
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c]);
+  }
+
+  // Уменьшаем фото в браузере перед загрузкой: снимки с телефона весят мегабайты,
+  // а гостям по Wi‑Fi нужна быстрая загрузка меню.
+  function resizeImage(file, maxSize, keepTransparency) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(img.src);
+        const png = keepTransparency && file.type === 'image/png';
+        resolve(canvas.toDataURL(png ? 'image/png' : 'image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('bad_image'));
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function uploadImage(file, maxSize, keepTransparency) {
+    const dataUrl = await resizeImage(file, maxSize, keepTransparency);
+    const { url } = await Api.post('/api/admin/upload', { dataUrl });
+    return url;
+  }
+
+  // Поле «фото»: превью + кнопки «Загрузить» / «Убрать». Возвращает функцию,
+  // которая отдаёт текущий адрес фото (загрузка происходит сразу при выборе файла).
+  function mountPhotoField(container, initialUrl, opts) {
+    let current = initialUrl || '';
+    container.innerHTML = `
+      <div class="photo-field">
+        <img class="photo-preview ${opts.logo ? 'logo' : ''}" alt="" />
+        <label class="btn btn-ghost">Загрузить фото
+          <input type="file" accept="image/*" hidden />
+        </label>
+        <button type="button" class="btn btn-ghost" data-remove>Убрать</button>
+        <span class="meta" data-status></span>
+      </div>`;
+    const preview = container.querySelector('img');
+    const removeBtn = container.querySelector('[data-remove]');
+    const status = container.querySelector('[data-status]');
+    const sync = () => {
+      preview.style.visibility = current ? 'visible' : 'hidden';
+      if (current) preview.src = current;
+      removeBtn.hidden = !current;
+    };
+    sync();
+    container.querySelector('input[type=file]').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      status.textContent = 'Загрузка…';
+      try {
+        current = await uploadImage(file, opts.maxSize || 1600, !!opts.logo);
+        status.textContent = '';
+      } catch (err) {
+        status.textContent = 'Не удалось загрузить фото';
+      }
+      e.target.value = '';
+      sync();
+    });
+    removeBtn.addEventListener('click', () => {
+      current = '';
+      sync();
+    });
+    return () => current;
+  }
+
   // ---------- ВХОД ----------
   async function tryLogin() {
     const password = document.getElementById('adminPassword').value;
@@ -40,6 +114,7 @@
       waiters: renderWaiters,
       tables: renderTables,
       reports: renderReports,
+      guest: renderGuestMenu,
       settings: renderSettings
     };
     renderers[name]();
@@ -140,9 +215,13 @@
           const row = document.createElement('div');
           row.className = 'list-row';
           row.innerHTML = `
-            <div>
-              <div class="main">${it.name} ${it.available ? '' : '<span class="badge badge-warn">скрыто</span>'}</div>
-              <div class="meta">${money(it.price)}</div>
+            <div class="with-thumb">
+              ${it.image ? `<img class="thumb" src="${esc(it.image)}" alt="" />` : '<div class="thumb"></div>'}
+              <div style="min-width:0;">
+                <div class="main">${esc(it.name)} ${it.available ? '' : '<span class="badge badge-warn">скрыто</span>'}</div>
+                <div class="meta">${money(it.price)}</div>
+                ${it.description ? `<div class="desc-snippet">${esc(it.description)}</div>` : ''}
+              </div>
             </div>
             <div class="row-actions">
               <button class="btn btn-ghost" data-edit-item="${it.id}">Изменить</button>
@@ -194,16 +273,9 @@
       })
     );
     tabContent.querySelectorAll('[data-edit-item]').forEach((btn) =>
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', () => {
         const it = menuItems.find((mi) => mi.id === btn.dataset.editItem);
-        const name = prompt('Название:', it.name);
-        if (name === null) return;
-        const priceStr = prompt('Цена, ₽:', it.price);
-        if (priceStr === null) return;
-        const price = parseFloat(priceStr);
-        if (!name || isNaN(price)) return alert('Некорректные данные');
-        await Api.put('/api/admin/menu-items/' + it.id, { name, price });
-        renderMenu();
+        openItemEditor(it);
       })
     );
     tabContent.querySelectorAll('[data-toggle-item]').forEach((btn) =>
@@ -221,6 +293,46 @@
         }
       })
     );
+  }
+
+  // Окно редактирования позиции: название, цена, описание и фото для гостевого меню
+  function openItemEditor(it) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="modal">
+        <div class="section-title">Позиция меню</div>
+        <div class="form-row"><label>Название</label><input data-f="name" value="${esc(it.name)}" /></div>
+        <div class="form-row"><label>Цена, ₽</label><input data-f="price" type="number" min="0" value="${esc(it.price)}" /></div>
+        <div class="form-row"><label>Описание (видят гости в QR-меню)</label>
+          <textarea data-f="description" placeholder="Состав, способ приготовления, вес…">${esc(it.description || '')}</textarea></div>
+        <div class="form-row"><label>Фото</label><div data-photo></div></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" data-cancel>Отмена</button>
+          <button class="btn btn-primary" data-save>Сохранить</button>
+        </div>
+      </div>`;
+    document.body.appendChild(backdrop);
+    const getPhoto = mountPhotoField(backdrop.querySelector('[data-photo]'), it.image, {});
+    const close = () => backdrop.remove();
+    backdrop.querySelector('[data-cancel]').addEventListener('click', close);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) close();
+    });
+    backdrop.querySelector('[data-save]').addEventListener('click', async () => {
+      const f = (n) => backdrop.querySelector(`[data-f="${n}"]`).value;
+      const name = f('name').trim();
+      const price = parseFloat(f('price'));
+      if (!name || isNaN(price)) return alert('Укажите название и цену');
+      await Api.put('/api/admin/menu-items/' + it.id, {
+        name,
+        price,
+        description: f('description'),
+        image: getPhoto()
+      });
+      close();
+      renderMenu();
+    });
   }
 
   // ---------- ОФИЦИАНТЫ ----------
@@ -426,6 +538,93 @@
       a.download = `отчёт-${report.month}.csv`;
       a.click();
     }
+  }
+
+  // ---------- QR-МЕНЮ ДЛЯ ГОСТЕЙ ----------
+  async function renderGuestMenu() {
+    tabContent.innerHTML = '<div class="empty-state">Загрузка…</div>';
+    const [{ settings: s }, info] = await Promise.all([
+      Api.get('/api/guest-menu'),
+      Api.get('/api/admin/server-info')
+    ]);
+
+    const field = (key, label, placeholder) =>
+      `<div class="form-row"><label>${label}</label><input data-g="${key}" value="${esc(s[key])}" placeholder="${esc(placeholder || '')}" /></div>`;
+
+    // Адрес, который увидят гости: берём тот, по которому открыта админка,
+    // если это не localhost; иначе — IP компьютера в локальной сети.
+    const hosts = [];
+    if (!/^(localhost|127\.)/.test(location.hostname)) hosts.push(location.host);
+    info.addresses.forEach((ip) => {
+      const h = ip + ':' + info.port;
+      if (!hosts.includes(h)) hosts.push(h);
+    });
+    if (hosts.length === 0) hosts.push(location.host);
+
+    tabContent.innerHTML = `
+      <div class="guest-layout">
+        <div class="card">
+          <div class="section-title">Оформление и контакты</div>
+          ${field('name', 'Название заведения')}
+          ${field('tagline', 'Подпись под названием', 'Меню и тёплые встречи')}
+          <div class="form-row"><label>Логотип (если не загружен — показывается название)</label><div data-logo></div></div>
+          ${field('badge', 'Плашка сверху', 'Открыто 24/7')}
+          <div class="form-row"><label>Приветствие</label><textarea data-g="welcome" rows="6">${esc(s.welcome)}</textarea></div>
+          ${field('instagram', 'Instagram', '@your_cafe')}
+          ${field('phone', 'Телефон', '+996 ...')}
+          ${field('address', 'Адрес')}
+          ${field('currency', 'Валюта в ценах', '₽ / сом / ₸')}
+          <div class="form-row"><label>Большое фото на главной</label><div data-hero></div></div>
+          <button class="btn btn-primary" id="btnSaveGuest">Сохранить</button>
+          <span id="guestSaved"></span>
+        </div>
+        <div class="card qr-box">
+          <div class="section-title">QR-код для столов</div>
+          ${hosts.length > 1 ? `<div class="form-row"><select id="qrHost">${hosts.map((h) => `<option>${esc(h)}</option>`).join('')}</select></div>` : ''}
+          <div id="qrImage"></div>
+          <div class="qr-url" id="qrUrl"></div>
+          <div class="row-actions" style="justify-content:center;">
+            <a class="btn btn-ghost" id="qrOpen" target="_blank">Открыть меню</a>
+            <button class="btn btn-primary" id="qrPrint">Печать</button>
+          </div>
+          <p class="meta" style="margin-top:14px;">Гости должны быть подключены к Wi‑Fi заведения — меню открывается с этого компьютера.</p>
+        </div>
+      </div>
+      <div class="print-qr" id="printQr"></div>
+    `;
+
+    const getLogo = mountPhotoField(tabContent.querySelector('[data-logo]'), s.logo, { logo: true, maxSize: 800 });
+    const getHero = mountPhotoField(tabContent.querySelector('[data-hero]'), s.heroImage, { maxSize: 2000 });
+
+    function drawQr() {
+      const sel = document.getElementById('qrHost');
+      const menuUrl = 'http://' + (sel ? sel.value : hosts[0]) + '/menu';
+      const svg = QRCode.toSvg(menuUrl);
+      document.getElementById('qrImage').innerHTML = svg;
+      document.getElementById('qrUrl').textContent = menuUrl;
+      document.getElementById('qrOpen').href = menuUrl;
+      const name = tabContent.querySelector('[data-g="name"]').value;
+      document.getElementById('printQr').innerHTML =
+        `<h2>${esc(name)}</h2><p>Наведите камеру, чтобы открыть меню</p>${svg}<p>${esc(menuUrl)}</p>`;
+    }
+    drawQr();
+    const hostSel = document.getElementById('qrHost');
+    if (hostSel) hostSel.addEventListener('change', drawQr);
+
+    document.getElementById('qrPrint').addEventListener('click', () => {
+      drawQr();
+      document.body.classList.add('printing-qr');
+      window.print();
+      document.body.classList.remove('printing-qr');
+    });
+
+    document.getElementById('btnSaveGuest').addEventListener('click', async () => {
+      const body = { logo: getLogo(), heroImage: getHero() };
+      tabContent.querySelectorAll('[data-g]').forEach((el) => (body[el.dataset.g] = el.value));
+      await Api.put('/api/admin/guest-menu', body);
+      drawQr();
+      document.getElementById('guestSaved').innerHTML = '<span class="badge badge-ok" style="margin-left:10px;">Сохранено</span>';
+    });
   }
 
   // ---------- НАСТРОЙКИ ----------

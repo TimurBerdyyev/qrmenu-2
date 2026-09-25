@@ -4,7 +4,28 @@
 const fs = require('fs');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const DB_PATH = path.join(DATA_DIR, 'db.json');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+// Настройки гостевого QR-меню (название, приветствие, контакты, логотип).
+function defaultGuestMenu() {
+  return {
+    name: 'Наше кафе',
+    tagline: 'Меню и тёплые встречи',
+    badge: 'Открыто 24/7',
+    welcome:
+      'Добро пожаловать!\nМы рады приветствовать вас в нашем заведении.\n' +
+      'Здесь вы найдёте блюда, приготовленные с душой и заботой,\n' +
+      'а также уютную атмосферу для приятного отдыха.\nПриятного аппетита!',
+    instagram: '',
+    phone: '',
+    address: '',
+    currency: '₽',
+    logo: '',
+    heroImage: ''
+  };
+}
 
 function seedData() {
   const now = new Date().toISOString();
@@ -36,6 +57,7 @@ function seedData() {
       { id: 't5', name: 'Стол 5' }
     ],
     orders: [],
+    guestMenu: defaultGuestMenu(),
     _meta: { createdAt: now }
   };
 }
@@ -50,7 +72,10 @@ function ensureDB() {
 function readDB() {
   ensureDB();
   const raw = fs.readFileSync(DB_PATH, 'utf8');
-  return JSON.parse(raw);
+  const db = JSON.parse(raw);
+  // Базы, созданные до появления гостевого меню, дополняем настройками по умолчанию.
+  db.guestMenu = { ...defaultGuestMenu(), ...(db.guestMenu || {}) };
+  return db;
 }
 
 // Очень простая защита от гонок записи: запись синхронная и быстрая,
@@ -63,4 +88,4 @@ function genId(prefix) {
   return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-module.exports = { readDB, writeDB, genId };
+module.exports = { readDB, writeDB, genId, UPLOADS_DIR };

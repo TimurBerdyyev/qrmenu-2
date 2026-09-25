@@ -421,7 +421,8 @@ table.data-table th { color: var(--ink-soft); font-weight: 600; }
   margin-bottom: 12px;
 }
 .form-row label { font-size: 0.85rem; color: var(--ink-soft); font-weight: 600; }
-.form-row input, .form-row select {
+.form-row input, .form-row select, .form-row textarea {
+  font-family: inherit;
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -464,6 +465,74 @@ table.data-table th { color: var(--ink-soft); font-weight: 600; }
   margin: 22px 0 10px;
 }
 .section-title:first-child { margin-top: 0; }
+
+/* ---- Фото блюд и гостевое меню в админке ---- */
+.form-row textarea { resize: vertical; min-height: 96px; line-height: 1.45; }
+.list-row .thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--accent-soft);
+  flex-shrink: 0;
+}
+.list-row .with-thumb { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.list-row .desc-snippet {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  max-width: 420px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.photo-field { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.photo-preview {
+  width: 120px;
+  height: 90px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+}
+.photo-preview.logo { object-fit: contain; background: var(--bg); }
+.guest-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
+.qr-box { text-align: center; }
+.qr-box svg { width: 100%; max-width: 260px; height: auto; }
+.qr-box .qr-url { font-weight: 700; word-break: break-all; margin: 8px 0 12px; }
+.qr-box select { margin-bottom: 10px; }
+@media (max-width: 860px) {
+  .guest-layout { grid-template-columns: 1fr; }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(43, 35, 32, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal {
+  width: min(560px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* ---- Печать QR-кода для столов ---- */
+.print-qr { display: none; }
+@media print {
+  body.printing-qr > * { display: none !important; }
+  body.printing-qr .print-qr { display: block !important; text-align: center; padding-top: 40px; }
+  .print-qr svg { width: 9cm; height: 9cm; }
+  .print-qr h2 { font-size: 26px; margin: 0 0 6px; }
+  .print-qr p { font-size: 15px; margin: 6px 0; }
+}
 
 /* ---- Чек ---- */
 .receipt {

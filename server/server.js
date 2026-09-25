@@ -6,7 +6,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
-const { readDB, writeDB, genId } = require('./db');
+const os = require('os');
+const { readDB, writeDB, genId, UPLOADS_DIR } = require('./db');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -18,6 +19,9 @@ const MIME = {
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
   '.ico': 'image/x-icon'
 };
 
@@ -31,12 +35,12 @@ function notFound(res) {
   sendJSON(res, 404, { error: 'not_found' });
 }
 
-function parseBody(req) {
+function parseBody(req, limit = 2 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
-      if (data.length > 2 * 1024 * 1024) {
+      if (data.length > limit) {
         reject(new Error('payload_too_large'));
         req.destroy();
       }
@@ -51,6 +55,61 @@ function parseBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+// --- Загруженные фото (логотип, фото блюд) ---
+const IMAGE_EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+
+function saveUpload(dataUrl) {
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(dataUrl || '');
+  if (!m) return null;
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  const name = genId('img') + IMAGE_EXT[m[1]];
+  fs.writeFileSync(path.join(UPLOADS_DIR, name), Buffer.from(m[2], 'base64'));
+  return '/uploads/' + name;
+}
+
+// Удаляет файл, если он больше нигде не используется.
+function removeUpload(db, fileUrl) {
+  if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
+  const stillUsed =
+    db.menuItems.some((mi) => mi.image === fileUrl) ||
+    db.guestMenu.logo === fileUrl ||
+    db.guestMenu.heroImage === fileUrl;
+  if (stillUsed) return;
+  fs.unlink(path.join(UPLOADS_DIR, path.basename(fileUrl)), () => {});
+}
+
+// Адреса этого компьютера в локальной сети — для QR-кода гостевого меню.
+function lanAddresses() {
+  const result = [];
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const addr of list || []) {
+      if (addr.family === 'IPv4' && !addr.internal) result.push(addr.address);
+    }
+  }
+  return result;
+}
+
+// Гостевое меню: только видимые позиции, без служебных данных.
+function buildGuestMenu(db) {
+  const categories = [...db.categories]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      items: db.menuItems
+        .filter((mi) => mi.categoryId === c.id && mi.available)
+        .map((mi) => ({
+          id: mi.id,
+          name: mi.name,
+          price: mi.price,
+          description: mi.description || '',
+          image: mi.image || ''
+        }))
+    }))
+    .filter((c) => c.items.length > 0);
+  return { settings: db.guestMenu, categories };
 }
 
 // --- Вычисление итогов заказа ---
@@ -139,6 +198,9 @@ async function handleApi(req, res, pathname, query) {
   }
   if (req.method === 'GET' && pathname === '/api/tables') {
     return sendJSON(res, 200, db.tables);
+  }
+  if (req.method === 'GET' && pathname === '/api/guest-menu') {
+    return sendJSON(res, 200, buildGuestMenu(db));
   }
 
   // ---- Логин официанта ----
@@ -245,6 +307,11 @@ async function handleApi(req, res, pathname, query) {
   }
 
   // ================= АДМИНКА =================
+  // Гости подключаются к той же Wi‑Fi сети ради QR-меню, поэтому админские
+  // запросы принимаем только с паролем администратора.
+  if (pathname.startsWith('/api/admin/') && req.headers['x-admin-password'] !== db.admin.password) {
+    return sendJSON(res, 401, { error: 'unauthorized' });
+  }
 
   // Категории
   if (req.method === 'POST' && pathname === '/api/admin/categories') {
@@ -283,6 +350,8 @@ async function handleApi(req, res, pathname, query) {
       categoryId: body.categoryId,
       name: body.name,
       price: body.price,
+      description: typeof body.description === 'string' ? body.description.trim() : '',
+      image: '',
       available: body.available !== false
     };
     db.menuItems.push(item);
@@ -298,11 +367,19 @@ async function handleApi(req, res, pathname, query) {
     if (body.categoryId) item.categoryId = body.categoryId;
     if (typeof body.price === 'number') item.price = body.price;
     if (typeof body.available === 'boolean') item.available = body.available;
+    if (typeof body.description === 'string') item.description = body.description.trim();
+    if (typeof body.image === 'string' && body.image !== item.image) {
+      const old = item.image;
+      item.image = body.image;
+      removeUpload(db, old);
+    }
     writeDB(db);
     return sendJSON(res, 200, item);
   }
   if (req.method === 'DELETE' && m) {
+    const item = db.menuItems.find((mi) => mi.id === m[1]);
     db.menuItems = db.menuItems.filter((mi) => mi.id !== m[1]);
+    if (item) removeUpload(db, item.image);
     writeDB(db);
     return sendJSON(res, 200, { ok: true });
   }
@@ -361,6 +438,32 @@ async function handleApi(req, res, pathname, query) {
     return sendJSON(res, 200, { ok: true });
   }
 
+  // Гостевое QR-меню: настройки
+  if (req.method === 'PUT' && pathname === '/api/admin/guest-menu') {
+    const body = await parseBody(req);
+    const fields = ['name', 'tagline', 'badge', 'welcome', 'instagram', 'phone', 'address', 'currency', 'logo', 'heroImage'];
+    const oldImages = [db.guestMenu.logo, db.guestMenu.heroImage];
+    for (const f of fields) {
+      if (typeof body[f] === 'string') db.guestMenu[f] = body[f].trim();
+    }
+    oldImages.forEach((u) => removeUpload(db, u));
+    writeDB(db);
+    return sendJSON(res, 200, db.guestMenu);
+  }
+
+  // Загрузка фото (фото уже уменьшено в браузере перед отправкой)
+  if (req.method === 'POST' && pathname === '/api/admin/upload') {
+    const body = await parseBody(req, 12 * 1024 * 1024);
+    const fileUrl = saveUpload(body.dataUrl);
+    if (!fileUrl) return sendJSON(res, 400, { error: 'bad_image' });
+    return sendJSON(res, 200, { url: fileUrl });
+  }
+
+  // Адрес сервера в локальной сети (для QR-кода)
+  if (req.method === 'GET' && pathname === '/api/admin/server-info') {
+    return sendJSON(res, 200, { port: Number(PORT), addresses: lanAddresses() });
+  }
+
   // Отчёты
   if (req.method === 'GET' && pathname === '/api/admin/reports/daily') {
     const dateStr = query.date || new Date().toISOString().slice(0, 10);
@@ -376,11 +479,19 @@ async function handleApi(req, res, pathname, query) {
 
 // --- Раздача статических файлов ---
 function serveStatic(req, res, pathname) {
-  let filePath = pathname === '/' ? '/index.html' : pathname;
-  filePath = path.join(PUBLIC_DIR, filePath);
+  let filePath;
+  let baseDir = PUBLIC_DIR;
+  if (pathname.startsWith('/uploads/')) {
+    baseDir = UPLOADS_DIR;
+    filePath = path.join(UPLOADS_DIR, pathname.slice('/uploads/'.length));
+  } else {
+    if (pathname === '/') pathname = '/index.html';
+    if (pathname === '/menu' || pathname === '/menu/') pathname = '/menu.html';
+    filePath = path.join(PUBLIC_DIR, pathname);
+  }
 
-  // защита от выхода за пределы public/
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  // защита от выхода за пределы разрешённой папки
+  if (!filePath.startsWith(baseDir + path.sep)) {
     res.writeHead(403);
     return res.end('Forbidden');
   }

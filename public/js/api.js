@@ -1,14 +1,21 @@
 // Небольшой хелпер поверх fetch для обращения к нашему API.
 const Api = {
+  // Админские запросы подписываем паролем, сохранённым при входе в админку.
+  _headers(json) {
+    const h = json ? { 'Content-Type': 'application/json' } : {};
+    const pw = sessionStorage.getItem('cafepos_admin_pw');
+    if (pw) h['X-Admin-Password'] = pw;
+    return h;
+  },
   async get(url) {
-    const r = await fetch(url);
+    const r = await fetch(url, { headers: Api._headers(false) });
     if (!r.ok) throw await Api._err(r);
     return r.json();
   },
   async post(url, body) {
     const r = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Api._headers(true),
       body: JSON.stringify(body || {})
     });
     if (!r.ok) throw await Api._err(r);
@@ -17,7 +24,7 @@ const Api = {
   async put(url, body) {
     const r = await fetch(url, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Api._headers(true),
       body: JSON.stringify(body || {})
     });
     if (!r.ok) throw await Api._err(r);
@@ -26,14 +33,14 @@ const Api = {
   async patch(url, body) {
     const r = await fetch(url, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Api._headers(true),
       body: JSON.stringify(body || {})
     });
     if (!r.ok) throw await Api._err(r);
     return r.json();
   },
   async del(url) {
-    const r = await fetch(url, { method: 'DELETE' });
+    const r = await fetch(url, { method: 'DELETE', headers: Api._headers(false) });
     if (!r.ok) throw await Api._err(r);
     return r.json();
   },
