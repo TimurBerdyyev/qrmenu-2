@@ -636,7 +636,45 @@
         <button class="btn btn-primary" id="btnSavePassword">Сохранить</button>
         <div id="pwSaved"></div>
       </div>
+      <div class="card" style="max-width:560px;margin-top:14px;">
+        <div class="section-title">Резервная копия</div>
+        <p class="meta">Меню, фото, официанты, столы и заказы — одним файлом. Скачивайте перед
+          обновлением программы и время от времени храните копию на флешке или в облаке.
+          Кроме того, сервер сам каждый час обновляет копию базы в папке <b>data/backups</b> (по файлу на день, 30 дней).</p>
+        <div class="row-actions" style="flex-wrap:wrap;">
+          <button class="btn btn-primary" id="btnBackup">Скачать копию</button>
+          <label class="btn btn-ghost">Восстановить из файла
+            <input type="file" id="restoreFile" accept=".json,application/json" hidden />
+          </label>
+        </div>
+        <div id="backupStatus" style="margin-top:10px;"></div>
+      </div>
     `;
+    const backupStatus = document.getElementById('backupStatus');
+    document.getElementById('btnBackup').addEventListener('click', async () => {
+      const r = await fetch('/api/admin/backup', { headers: Api._headers(false) });
+      if (!r.ok) {
+        backupStatus.innerHTML = '<div class="error-msg">Не удалось сделать копию</div>';
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(await r.blob());
+      a.download = 'cafe-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+    });
+    document.getElementById('restoreFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      if (!confirm('Заменить все текущие данные (меню, заказы, официантов) данными из файла «' + file.name + '»?')) return;
+      backupStatus.textContent = 'Восстановление…';
+      try {
+        await Api.post('/api/admin/restore', JSON.parse(await file.text()));
+        backupStatus.innerHTML = '<span class="badge badge-ok">Данные восстановлены</span>';
+      } catch (err) {
+        backupStatus.innerHTML = '<div class="error-msg">Это не файл резервной копии Cafe POS</div>';
+      }
+    });
     document.getElementById('btnSavePassword').addEventListener('click', async () => {
       const password = document.getElementById('newAdminPassword').value;
       if (!password) return;

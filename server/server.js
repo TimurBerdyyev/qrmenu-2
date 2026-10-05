@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const os = require('os');
-const { readDB, writeDB, genId, UPLOADS_DIR } = require('./db');
+const { readDB, writeDB, genId, dailyBackup, exportBackup, importBackup, UPLOADS_DIR, DATA_DIR } = require('./db');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -459,6 +459,25 @@ async function handleApi(req, res, pathname, query) {
     return sendJSON(res, 200, { url: fileUrl });
   }
 
+  // Резервная копия: скачать всё одним файлом / восстановить из файла
+  if (req.method === 'GET' && pathname === '/api/admin/backup') {
+    const name = 'cafe-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="' + name + '"'
+    });
+    return res.end(JSON.stringify(exportBackup()));
+  }
+  if (req.method === 'POST' && pathname === '/api/admin/restore') {
+    const body = await parseBody(req, 300 * 1024 * 1024);
+    try {
+      importBackup(body);
+    } catch (e) {
+      return sendJSON(res, 400, { error: 'bad_backup' });
+    }
+    return sendJSON(res, 200, { ok: true });
+  }
+
   // Адрес сервера в локальной сети (для QR-кода)
   if (req.method === 'GET' && pathname === '/api/admin/server-info') {
     return sendJSON(res, 200, { port: Number(PORT), addresses: lanAddresses() });
@@ -523,7 +542,11 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+dailyBackup();
+setInterval(dailyBackup, 60 * 60 * 1000);
+
 server.listen(PORT, () => {
+  console.log('Данные кафе: ' + DATA_DIR);
   console.log(`Cafe POS сервер запущен: http://localhost:${PORT}`);
   console.log('На других устройствах используйте локальный IP этого компьютера, например http://192.168.1.50:' + PORT);
 });
