@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- PAGE START -->
+<title>Кроха Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Unbounded:wght@400;500;600&display=swap">
+<style>
+/* Layout: floating dark "app window" — header, filter rail + product grid, fitting room docked bottom-left */
+:root{
+  --bg:#0e0d11; --frame:#16151a; --card:#1e1d23; --card-2:#26252c; --chip:#2c2b33;
+  --line:rgba(255,255,255,.07); --fg:#f3f1f5; --muted:#8e8a97; --soft:#b9b5c1;
+  --accent:#f07a3a; --accent-2:#ff9a5f; --on-accent:#fff; --good:#6fc39a;
+  --shadow:0 30px 90px rgba(0,0,0,.6); --veil:rgba(10,9,13,.62);
+  --font-display:"Unbounded","Manrope",system-ui,sans-serif;
+  --font-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#e7e6eb; --frame:#f8f7fa; --card:#ffffff; --card-2:#f1f0f4; --chip:#eeedf2;
+    --line:rgba(24,20,34,.08); --fg:#1b1a20; --muted:#716d7b; --soft:#4b4853;
+    --accent:#e8692a; --accent-2:#f5884a; --shadow:0 30px 80px rgba(40,30,60,.16); --veil:rgba(30,26,36,.45);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#e7e6eb; --frame:#f8f7fa; --card:#ffffff; --card-2:#f1f0f4; --chip:#eeedf2;
+  --line:rgba(24,20,34,.08); --fg:#1b1a20; --muted:#716d7b; --soft:#4b4853;
+  --accent:#e8692a; --accent-2:#f5884a; --shadow:0 30px 80px rgba(40,30,60,.16); --veil:rgba(30,26,36,.45);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg); font:500 14px/1.45 var(--font-body);
+  background-image:radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb,var(--accent) 7%, transparent), transparent 60%),
+                   radial-gradient(900px 700px at 110% 110%, color-mix(in srgb,var(--fg) 4%, transparent), transparent 60%);
+  padding-inline:16px; padding-block:20px 40px;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+svg{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.app{max-width:1280px;margin:0 auto;background:var(--frame);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);overflow:clip}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;
+  padding:14px 22px;background:color-mix(in srgb,var(--frame) 88%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{display:flex;gap:22px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.nav button{padding:6px 0;position:relative}
+.nav button[aria-pressed="true"]{color:var(--fg)}
+.nav button[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:2px;background:var(--accent)}
+.logo{font-family:var(--font-display);font-weight:600;font-size:20px;letter-spacing:.32em;padding-left:.32em;display:flex;align-items:center;gap:10px}
+.logo i{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;transform:translateY(-1px)}
+.tools{display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.ibtn{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:var(--soft);transition:background .2s,color .2s;position:relative}
+.ibtn:hover{background:var(--chip);color:var(--fg)}
+.ibtn svg{width:18px;height:18px}
+.search-pill{display:flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 12px;border-radius:12px;background:var(--chip);color:var(--muted);font-size:13px}
+.search-pill kbd{font:600 10px var(--font-body);padding:3px 6px;border-radius:6px;background:var(--card);color:var(--muted)}
+.badge{position:absolute;top:3px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:10px;font-weight:700;display:grid;place-items:center;line-height:1}
+.badge.bump{animation:bump .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{0%{transform:scale(.6)}100%{transform:scale(1)}}
+
+/* body */
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;padding:22px}
+.shell>*{min-width:0}
+.headline{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.headline h1{margin:0;font:500 26px/1.1 var(--font-display);letter-spacing:-.01em;text-wrap:balance}
+.headline h1 small{font:500 13px var(--font-body);color:var(--muted);margin-left:10px;letter-spacing:0}
+.sort{height:38px;padding:0 34px 0 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);appearance:none;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 16px,calc(100% - 12px) 16px;background-size:5px 5px;background-repeat:no-repeat}
+
+/* filters */
+.filters{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:18px;align-self:start;position:sticky;top:84px}
+.f-head{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.reset{color:var(--accent);font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center}
+.reset svg{width:13px;height:13px}
+.field{display:flex;align-items:center;gap:8px;background:var(--card-2);border-radius:12px;padding:0 12px;height:38px;color:var(--muted)}
+.field input{border:0;background:transparent;outline:0;flex:1;min-width:0;color:var(--fg)}
+.field svg{width:15px;height:15px;flex:none}
+.f-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.cats{display:flex;flex-direction:column;gap:2px}
+.cat{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:11px;color:var(--soft);font-size:13px;text-align:left;transition:background .2s,color .2s}
+.cat:hover{background:var(--card-2);color:var(--fg)}
+.cat[aria-pressed="true"]{background:var(--chip);color:var(--fg)}
+.cat .dot{width:22px;height:22px;border-radius:7px;background:var(--card-2);display:grid;place-items:center;flex:none}
+.cat[aria-pressed="true"] .dot{background:var(--accent)}
+.cat .dot svg{width:18px;height:18px}
+.cat .n{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 11px;border-radius:999px;background:var(--card-2);font-size:12px;color:var(--soft);border:1px solid transparent;transition:.2s}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);border-color:var(--accent);color:var(--fg)}
+.range{position:relative;height:28px}
+.range input{position:absolute;inset:0;width:100%;appearance:none;background:none;pointer-events:none;margin:0}
+.range input::-webkit-slider-thumb{appearance:none;pointer-events:auto;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--card);box-shadow:0 0 0 1px var(--accent);cursor:grab}
+.range input::-moz-range-thumb{pointer-events:auto;width:12px;height:12px;border-radius:50%;background:var(--accent);border:3px solid var(--card);cursor:grab}
+.range .track{position:absolute;left:0;right:0;top:13px;height:3px;border-radius:3px;background:var(--card-2)}
+.range .fill{position:absolute;top:13px;height:3px;border-radius:3px;background:var(--accent)}
+.prices{display:flex;justify-content:space-between;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+
+/* grid + cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;align-content:start}
+.empty{grid-column:1/-1;padding:60px 20px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:20px}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px;overflow:hidden;display:flex;flex-direction:column;gap:10px;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s}
+.card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.pic{position:relative;aspect-ratio:1/1;max-width:100%;border-radius:14px;
+  background:radial-gradient(70% 60% at 50% 55%,color-mix(in srgb,var(--fg) 6%,transparent),transparent 70%)}
+.pic svg{position:absolute;left:14%;top:16%;width:72%;height:74%;overflow:visible;filter:drop-shadow(0 14px 14px rgba(0,0,0,.35));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.card:hover .pic svg{transform:scale(1.06) rotate(-1.5deg)}
+.side{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.rbtn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--chip);color:var(--soft);transition:background .2s,color .2s,transform .2s;position:relative}
+.rbtn:hover{color:var(--fg)}
+.rbtn svg{width:16px;height:16px}
+.rbtn.fav[aria-pressed="true"]{color:var(--accent)}
+.rbtn.fav[aria-pressed="true"] svg path{fill:currentColor}
+.rbtn.fav.pop{animation:pop .4s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{0%{transform:scale(.7)}100%{transform:scale(1)}}
+.rbtn.hang[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.rbtn[data-tip]::after{content:attr(data-tip);position:absolute;left:40px;top:50%;transform:translate(-4px,-50%);white-space:nowrap;font-size:11px;font-weight:600;
+  padding:5px 9px;border-radius:8px;background:var(--fg);color:var(--frame);opacity:0;pointer-events:none;transition:.18s}
+.rbtn[data-tip]:hover::after,.rbtn[data-tip]:focus-visible::after{opacity:1;transform:translate(0,-50%)}
+.rate{position:absolute;right:12px;top:12px;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--chip);display:flex;gap:4px;align-items:center;font-variant-numeric:tabular-nums}
+.rate b{color:#f3b23c}
+.tag{position:absolute;right:12px;top:42px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good)}
+.meta{display:flex;flex-direction:column;gap:2px;padding-right:56px;min-width:0}
+.meta .name{font-size:13px;color:var(--soft);line-height:1.3}
+.meta .size{font-size:11px;color:var(--muted)}
+.price{display:flex;align-items:baseline;gap:7px;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.price.sale .now{color:var(--accent)}
+.price s{color:var(--muted);font-weight:500;font-size:12px}
+.price .off{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.cart{position:absolute;right:0;bottom:0;width:58px;height:58px;display:grid;place-items:center;color:var(--soft);z-index:1}
+.cart::before{content:"";position:absolute;right:-70px;bottom:-70px;width:140px;height:140px;border-radius:50%;background:var(--accent);
+  transform:scale(0);transition:transform .45s cubic-bezier(.2,.9,.25,1);z-index:-1}
+.card:hover .cart::before,.cart:focus-visible::before,.cart.added::before{transform:scale(1)}
+.card:hover .cart,.cart:focus-visible,.cart.added{color:var(--on-accent)}
+.cart svg{width:20px;height:20px;transform:translate(4px,4px);transition:transform .3s}
+.cart.added svg{animation:shake .5s}
+@keyframes shake{30%{transform:translate(4px,4px) rotate(-14deg) scale(1.15)}60%{transform:translate(4px,4px) rotate(10deg)}}
+
+/* fitting room */
+.fit{position:fixed;left:24px;bottom:24px;z-index:40;width:268px;max-height:calc(100% - 48px);overflow:auto;background:var(--frame);border:1px solid var(--line);border-radius:22px;
+  box-shadow:0 24px 70px rgba(0,0,0,.45);padding:14px;display:flex;flex-direction:column;gap:12px;
+  transform-origin:left bottom;transition:transform .45s cubic-bezier(.2,.9,.25,1),opacity .3s}
+.fit.closed{transform:translateY(20px) scale(.6);opacity:0;pointer-events:none}
+.fit-h{display:flex;justify-content:space-between;align-items:center}
+.fit-h h2{margin:0;font:600 15px var(--font-body)}
+.fit-h p{margin:2px 0 0;font-size:11.5px;color:var(--muted);line-height:1.35}
+.stage-wrap{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:300/380;max-width:100%;
+  background:radial-gradient(80% 60% at 50% 35%,#f4f1ec,#e2ddd5 70%,#d6d0c7)}
+.stage-wrap svg{width:100%;height:100%}
+.stage-tag{position:absolute;left:10px;bottom:10px;font-size:10px;font-weight:700;letter-spacing:.04em;color:#5c5650;background:rgba(255,255,255,.7);padding:3px 7px;border-radius:6px}
+.zoom{position:absolute;right:8px;bottom:8px;width:30px;height:30px;border-radius:50%;background:rgba(40,36,44,.7);color:#fff;display:grid;place-items:center}
+.zoom svg{width:15px;height:15px}
+.dress{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center;padding:16px;
+  background:rgba(22,20,26,.55);backdrop-filter:blur(7px) saturate(.6);-webkit-backdrop-filter:blur(7px) saturate(.6);color:#fff;opacity:0;pointer-events:none;transition:opacity .35s}
+.dress.on{opacity:1}
+.dress b{font-size:13px}
+.dress span{font-size:11px;color:rgba(255,255,255,.7);max-width:170px}
+.spin{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin .8s linear infinite;margin-bottom:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-120%)}
+.sheen.go{animation:sheen .9s ease-out}
+@keyframes sheen{to{transform:translateX(120%)}}
+.layer{transform-box:fill-box;transform-origin:50% 0}
+.layer.enter{animation:drop .75s cubic-bezier(.2,.85,.25,1) both}
+@keyframes drop{0%{opacity:0;transform:translateY(-16px) scaleY(.9)}55%{opacity:1}75%{transform:translateY(2px) scaleY(1.02)}100%{opacity:1;transform:none}}
+.layer.leave{animation:lift .35s ease forwards}
+@keyframes lift{to{opacity:0;transform:translateY(-18px) scale(.96)}}
+.picks-h{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+.picks{display:flex;gap:6px;flex-wrap:wrap;min-height:44px}
+.pick{position:relative;width:44px;height:44px;border-radius:11px;background:var(--card-2);display:grid;place-items:center;padding:5px}
+.pick.new{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}
+.pick svg{width:100%;height:100%}
+.pick button{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--fg);color:var(--frame);display:grid;place-items:center}
+.pick button svg{width:9px;height:9px}
+.picks .ph{font-size:11.5px;color:var(--muted);align-self:center}
+.fit-f{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:var(--chip);font-size:11.5px;font-weight:600}
+.pill svg{width:13px;height:13px}
+.pill.primary{background:var(--accent);color:var(--on-accent)}
+.pill:disabled{opacity:.45;cursor:default}
+.linkbtn{color:var(--accent);font-size:11.5px;font-weight:600;display:inline-flex;gap:5px;align-items:center}
+.linkbtn svg{width:12px;height:12px}
+.tryon{position:fixed;left:24px;bottom:24px;z-index:39;display:flex;align-items:center;gap:8px;height:42px;padding:0 14px 0 5px;border-radius:999px;background:var(--frame);border:1px solid var(--line);
+  box-shadow:0 14px 40px rgba(0,0,0,.4);font-weight:600;font-size:12.5px;transition:transform .35s cubic-bezier(.2,.9,.25,1),opacity .25s}
+.tryon .av{width:32px;height:32px;border-radius:50%;overflow:hidden;background:#e5e0d9}
+.tryon .av svg{width:100%;height:100%}
+.tryon .cnt{min-width:20px;height:20px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-size:11px;display:grid;place-items:center;padding:0 5px}
+.tryon.hide{opacity:0;transform:scale(.8);pointer-events:none}
+
+/* flying garment */
+.flyer{position:fixed;left:0;top:0;z-index:100;pointer-events:none;overflow:visible;will-change:transform;filter:drop-shadow(0 18px 18px rgba(0,0,0,.4))}
+
+/* drawers, lightbox, toast */
+.scrim{position:fixed;inset:0;z-index:60;background:var(--veil);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(380px,100%);background:var(--frame);border-left:1px solid var(--line);display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .45s cubic-bezier(.2,.9,.25,1);padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(18px + env(safe-area-inset-bottom,0px))}
+.drawer.on{transform:none}
+.drawer h2{margin:0;font:500 18px var(--font-display)}
+.dr-h{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.lines{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:14px 0}
+.line{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center}
+.line .th{width:56px;height:56px;border-radius:12px;background:var(--card);padding:7px}
+.line .th svg{width:100%;height:100%}
+.line .nm{font-size:13px;line-height:1.3}
+.line .pr{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.qty{display:flex;align-items:center;gap:4px;background:var(--card);border-radius:10px;padding:3px}
+.qty button{width:24px;height:24px;border-radius:7px;display:grid;place-items:center}
+.qty button:hover{background:var(--chip)}
+.qty span{min-width:18px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px}
+.total{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.total .row{display:flex;justify-content:space-between;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.total .note{font-size:12px;color:var(--muted)}
+.big{height:46px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-weight:700}
+.box{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:24px;pointer-events:none}
+.box .in{position:relative;width:min(420px,100%);aspect-ratio:300/380;max-height:calc(100% - 20px);border-radius:24px;overflow:hidden;
+  background:radial-gradient(80% 60% at 50% 35%,#f4f1ec,#e2ddd5 70%,#d6d0c7);transform:scale(.85);opacity:0;transition:.35s cubic-bezier(.2,.9,.25,1)}
+.box.on{pointer-events:auto}
+.box.on .in{transform:none;opacity:1}
+.box .in svg{width:100%;height:100%}
+.box .x{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(40,36,44,.75);color:#fff;display:grid;place-items:center}
+.toast{position:fixed;left:50%;bottom:28px;z-index:90;transform:translate(-50%,30px);opacity:0;background:var(--fg);color:var(--frame);padding:10px 16px;border-radius:12px;font-weight:600;font-size:13px;transition:.35s cubic-bezier(.2,.9,.25,1);pointer-events:none;max-width:calc(100% - 32px)}
+.toast.on{transform:translate(-50%,0);opacity:1}
+
+@media (max-width:980px){
+  .nav{display:none}
+  .top{grid-template-columns:auto 1fr}
+  .logo{justify-content:flex-start}
+  .search-pill span,.search-pill kbd{display:none}
+  .search-pill{padding:0;width:36px;justify-content:center;background:none}
+  .shell{grid-template-columns:1fr;padding:16px;gap:16px}
+  .filters{position:static}
+  .cats{flex-direction:row;overflow-x:auto;padding-bottom:4px}
+  .cat{flex:none}
+  .cat .n{margin-left:0}
+}
+@media (max-width:640px){
+  body{padding-inline:10px;padding-block:10px 160px}
+  .app{border-radius:20px}
+  .top{padding:12px 14px}
+  .logo{font-size:16px;letter-spacing:.24em}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .card{padding:10px;border-radius:16px}
+  .meta{padding-right:40px}
+  .meta .name{font-size:12px}
+  .price{font-size:14px}
+  .rbtn[data-tip]::after{display:none}
+  .fit{left:10px;right:10px;bottom:10px;width:auto;display:grid;grid-template-columns:118px minmax(0,1fr);grid-template-areas:"h h" "s p" "s f";gap:10px 12px;align-items:start}
+  .fit-h{grid-area:h}.fit-h p,.stage-tag{display:none}
+  .stage-wrap{grid-area:s}
+  .picks-area{grid-area:p;display:flex;flex-direction:column;gap:6px;min-width:0}
+  .fit-f{grid-area:f;flex-wrap:wrap}
+  .pick{width:38px;height:38px}
+  .tryon{left:10px;bottom:10px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+<!-- HEAD END -->
+</head>
+<body>
+
+<!-- shared SVG paint servers (kept rendered so every url(#...) resolves) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="shade" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".28" stop-color="#000" stop-opacity="0"/>
+      <stop offset=".62" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".24"/>
+    </linearGradient>
+    <pattern id="stripe" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#f5f0e7"/><rect width="10" height="4" fill="#26395f"/>
+    </pattern>
+    <pattern id="denim" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="6" height="6" fill="#4f6e9a"/><rect width="2" height="6" fill="#5a7aa6"/>
+    </pattern>
+    <pattern id="knit" width="6" height="8" patternUnits="userSpaceOnUse">
+      <rect width="6" height="8" fill="#d36a40"/><path d="M0 0 L3 4 L6 0 M0 4 L3 8 L6 4" stroke="#bd5733" stroke-width="1" fill="none"/>
+    </pattern>
+    <radialGradient id="floor" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <nav class="nav" aria-label="Разделы">
+      <button data-view="all" aria-pressed="true">Каталог</button>
+      <button data-view="new" aria-pressed="false">Новинки</button>
+      <button data-view="sale" aria-pressed="false">Распродажа</button>
+    </nav>
+    <div class="logo" aria-label="Кроха">КРОХА<i></i></div>
+    <div class="tools">
+      <button class="search-pill" id="searchJump" aria-label="Поиск">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span>Поиск</span><kbd>⌘K</kbd>
+      </button>
+      <button class="ibtn" id="themeBtn" aria-label="Сменить тему">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="ibtn" id="fitBtn" aria-label="Примерочная">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5a2 2 0 1 1 2-2c0 1.2-2 1.5-2 3L3.5 15a1.4 1.4 0 0 0 .9 2.5h15.2a1.4 1.4 0 0 0 .9-2.5L12 8.5"/></svg>
+      </button>
+      <button class="ibtn" id="cartBtn" aria-label="Корзина">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15l-1.3 10.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8L4.5 9Z"/><path d="M8.5 9V7.5a3.5 3.5 0 0 1 7 0V9"/></svg>
+        <span class="badge" id="cartCount" hidden>0</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <div class="headline">
+      <h1 id="title">Каталог<small id="count"></small></h1>
+      <label class="sr" for="sort">Сортировка</label>
+      <select class="sort" id="sort">
+        <option value="new">Сначала новинки</option>
+        <option value="rating">По рейтингу</option>
+        <option value="asc">Сначала дешевле</option>
+        <option value="desc">Сначала дороже</option>
+      </select>
+    </div>
+
+    <aside class="filters" aria-label="Фильтры">
+      <div class="f-head">Фильтры
+        <button class="reset" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Сбросить</button>
+      </div>
+      <label class="field" for="q">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Найти вещь…" autocomplete="off">
+      </label>
+      <div>
+        <div class="f-label" style="margin-bottom:8px">Категория</div>
+        <div class="cats" id="cats"></div>
+      </div>
+      <div>
+        <div class="f-label" style="margin-bottom:8px">Возраст</div>
+        <div class="chips" id="ages"></div>
+      </div>
+      <div>
+        <div class="f-label" style="margin-bottom:6px">Цена</div>
+        <div class="range">
+          <div class="track"></div><div class="fill" id="rfill"></div>
+          <label class="sr" for="pmin">Цена от</label><input type="range" id="pmin" min="0" max="5000" step="100" value="0">
+          <label class="sr" for="pmax">Цена до</label><input type="range" id="pmax" min="0" max="5000" step="100" value="5000">
+        </div>
+        <div class="prices"><span id="pminL"></span><span id="pmaxL"></span></div>
+      </div>
+      <button class="chip" id="favOnly" aria-pressed="false" style="align-self:flex-start">♥ Только избранное</button>
+    </aside>
+
+    <main class="grid" id="grid" aria-live="polite"></main>
+  </div>
+</div>
+
+<!-- fitting room -->
+<section class="fit" id="fit" aria-label="Примерочная">
+  <div class="fit-h">
+    <div><h2>Примерочная</h2><p>Нажмите на вешалку у любой вещи, чтобы примерить её на модель.</p></div>
+    <button class="ibtn" id="fitClose" aria-label="Свернуть примерочную"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="stage-wrap" id="stageWrap">
+    <svg id="stage" viewBox="-50 4 300 380" preserveAspectRatio="xMidYMid meet" aria-label="Модель в выбранных вещах" role="img"></svg>
+    <span class="stage-tag">Рост 110 см · 5 лет</span>
+    <div class="sheen" id="sheen"></div>
+    <div class="dress" id="dress"><div class="spin"></div><b>Одеваем модель</b><span>Подгоняем вещь по росту, это займёт секунду.</span></div>
+    <button class="zoom" id="zoom" aria-label="Увеличить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></svg></button>
+  </div>
+  <div class="picks-area">
+    <div class="picks-h"><span>Ваш образ</span><span id="pickCount"></span></div>
+    <div class="picks" id="picks"></div>
+  </div>
+  <div class="fit-f">
+    <button class="pill primary" id="lookToCart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15l-1.3 10.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8L4.5 9Z"/><path d="M8.5 9V7.5a3.5 3.5 0 0 1 7 0V9"/></svg>Образ в корзину</button>
+    <button class="linkbtn" id="startOver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Заново</button>
+  </div>
+</section>
+<button class="tryon hide" id="tryon"><span class="av" id="tryAv"></span>Примерочная <span class="cnt" id="tryCnt">0</span></button>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Корзина">
+  <div class="dr-h"><h2>Корзина</h2><button class="ibtn" id="drClose" aria-label="Закрыть корзину"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="lines" id="lines"></div>
+  <div class="total">
+    <div class="row"><span>Итого</span><span id="sum">0 ₽</span></div>
+    <button class="big" id="checkout">Оформить заказ</button>
+    <div class="note" id="note">Доставка бесплатно от 5 000 ₽.</div>
+  </div>
+</aside>
+<div class="box" id="box"><div class="in"><svg id="boxStage" viewBox="-50 4 300 380" preserveAspectRatio="xMidYMid meet"></svg><button class="x" id="boxClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- garments: all drawn in one 200×400 body space, so a piece fits the model exactly ---------- */
+const OUT = 'stroke="rgba(20,16,24,.38)" stroke-width="1.2" stroke-linejoin="round"';
+const G = (d, fill) => `<path d="${d}" fill="${fill}" ${OUT}/><path d="${d}" fill="url(#shade)"/>`;
+const L = (d, c, w = 1.4, extra = '') => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const mirror = s => `<g>${s}</g><g transform="translate(200 0) scale(-1 1)">${s}</g>`;
+
+const MANNEQUIN = `
+  <ellipse cx="100" cy="384" rx="62" ry="9" fill="url(#floor)"/>
+  <g fill="#d6d0c8" stroke="#c4bdb4" stroke-width="1">
+    <line x1="86" y1="196" x2="85" y2="362" stroke="#cfc8bf" stroke-width="24" stroke-linecap="round"/>
+    <line x1="114" y1="196" x2="115" y2="362" stroke="#cfc8bf" stroke-width="24" stroke-linecap="round"/>
+    <ellipse cx="84" cy="371" rx="15" ry="8"/><ellipse cx="116" cy="371" rx="15" ry="8"/>
+    <line x1="68" y1="110" x2="54" y2="190" stroke="#d1cac2" stroke-width="14" stroke-linecap="round"/>
+    <line x1="132" y1="110" x2="146" y2="190" stroke="#d1cac2" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="53" cy="199" r="8"/><circle cx="147" cy="199" r="8"/>
+    <path d="M66,102 Q100,94 134,102 Q138,150 131,200 Q100,207 69,200 Q62,150 66,102 Z"/>
+    <rect x="92" y="78" width="16" height="26" rx="6"/>
+    <ellipse cx="100" cy="55" rx="27" ry="31"/>
+  </g>
+  <path d="M80,40 Q100,26 120,40" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>`;
+
+const P = [
+ { id:"tee", name:"Футболка в полоску «Юнга»", cat:"tops", slot:"top", z:2, price:1290, old:1590, rating:4.7, ages:[2,7], size:"Рост 86–122 см", isNew:false,
+   crop:[36,86,128,128],
+   svg: G("M66,100 Q84,96 92,96 Q100,104 108,96 Q116,96 134,100 L150,140 L132,146 L134,200 Q100,206 66,200 L68,146 L50,140 Z","url(#stripe)")
+      + L("M91,97 Q100,108 109,97","#26395f",3.2) + L("M50,140 L68,146 M150,140 L132,146","#26395f",2.4) },
+ { id:"long", name:"Лонгслив «Динозаврик»", cat:"tops", slot:"top", z:2, price:1490, rating:4.8, ages:[2,8], size:"Рост 92–128 см", isNew:true,
+   crop:[42,88,116,116],
+   svg: G("M66,100 Q84,96 92,96 Q100,104 108,96 Q116,96 134,100 L153,190 L151,198 L137,198 L130,138 L133,202 Q100,208 67,202 L70,138 L63,198 L49,198 L47,190 Z","#bfe0cf")
+      + L("M91,97 Q100,107 109,97","#93c2aa",3) + L("M49,191 L63,191 M137,191 L151,191","#93c2aa",2.2)
+      + `<path d="M80,170 Q82,154 98,154 Q106,154 109,147 Q111,139 119,141 Q124,145 117,150 Q115,158 113,167 L111,177 L107,177 L107,171 L94,171 L94,177 L90,177 L90,171 Q83,172 74,166 Z" fill="#3f8f6a"/>
+         <path d="M86,156 l3,-6 l3,5 M93,154 l3,-6 l3,5" fill="#3f8f6a"/><circle cx="117" cy="145" r="1.3" fill="#fff"/>` },
+ { id:"hoodie", name:"Худи на флисе, шалфей", cat:"hoodies", slot:"mid", z:4, price:2890, rating:4.6, ages:[3,9], size:"Рост 98–134 см", isNew:false,
+   crop:[38,80,124,134],
+   svg: G("M63,100 Q80,93 100,93 Q120,93 137,100 L156,190 L154,200 L137,200 L129,136 L131,208 Q100,214 69,208 L71,136 L63,200 L46,200 L44,190 Z","#9bb49a")
+      + G("M78,172 L122,172 L127,206 Q100,210 73,206 Z","#8ea98d")
+      + L("M45,191 L63,191 M137,191 L155,191 M69,200 Q100,206 131,200","#7f9a7e",2)
+      + G("M72,100 Q100,126 128,100 Q124,84 100,84 Q76,84 72,100 Z","#87a086") + L("M81,99 Q100,114 119,99","#6f896e",1.6)
+      + L("M94,110 L93,130 M106,110 L107,130","#f1ede6",1.6) + `<circle cx="93" cy="131" r="2" fill="#f1ede6"/><circle cx="107" cy="131" r="2" fill="#f1ede6"/>` },
+ { id:"vest", name:"Дутый жилет «Ветерок»", cat:"hoodies", slot:"vest", z:4.5, price:3490, old:4290, rating:4.5, ages:[2,8], size:"Рост 92–128 см", isNew:false,
+   crop:[50,84,100,132],
+   svg: G("M70,98 Q100,90 130,98 L136,126 Q131,166 135,206 Q100,214 65,206 Q69,166 64,126 Z","#2f7f7b")
+      + L("M66,128 Q100,135 134,128 M67,152 Q100,159 133,152 M67,177 Q100,184 133,177","#225e5b",1.6)
+      + L("M100,96 L100,210","#1c4f4c",2) + G("M84,86 L116,86 L118,99 Q100,105 82,99 Z","#2a726e") + `<rect x="98" y="104" width="4" height="7" rx="1.5" fill="#d9d4cc"/>` },
+ { id:"rain", name:"Дождевик «Цыплёнок»", cat:"outer", slot:"outer", z:6, price:3990, rating:4.9, ages:[2,8], size:"Рост 92–128 см", isNew:true,
+   crop:[34,82,132,194],
+   svg: G("M61,98 Q80,91 100,91 Q120,91 139,98 L159,192 L156,203 L135,203 L128,140 L143,264 Q100,272 57,264 L72,140 L65,203 L44,203 L41,192 Z","#f3c437")
+      + L("M100,98 L100,268","#c99a1f",1.8) + L("M42,186 L64,186 M136,186 L158,186","#e9e6df",3)
+      + [124,152,180,208].map(y=>`<rect x="103" y="${y}" width="9" height="3.4" rx="1.7" fill="#2c3550"/>`).join("")
+      + G("M72,214 L92,212 L93,232 L74,234 Z","#e6b52c") + G("M108,212 L128,214 L126,234 L107,232 Z","#e6b52c")
+      + G("M70,98 Q100,122 130,98 Q126,84 100,84 Q74,84 70,98 Z","#e2b12a") + L("M79,98 Q100,112 121,98","#c99a1f",1.6) },
+ { id:"over", name:"Джинсовый полукомбинезон", cat:"overalls", slot:"bottom", z:3, price:3290, old:3790, rating:4.4, ages:[1,6], size:"Рост 80–116 см", isNew:false,
+   crop:[48,96,104,268],
+   svg: L("M80,130 L70,103 M120,130 L130,103","#45638c",8)
+      + G("M78,128 L122,128 L129,190 L132,360 L103,360 L100,224 L97,360 L68,360 L71,190 Z","url(#denim)")
+      + `<rect x="89" y="142" width="22" height="18" rx="3" fill="none" stroke="#c9d6ea" stroke-opacity=".55" stroke-dasharray="2 2"/>`
+      + L("M71,190 L129,190","#c9d6ea",1,'stroke-opacity=".5" stroke-dasharray="2 2"')
+      + G("M68,346 L97,346 L97,360 L68,360 Z","#7090bb") + G("M103,346 L132,346 L132,360 L103,360 Z","#7090bb")
+      + `<circle cx="80" cy="133" r="3.4" fill="#d9b25a"/><circle cx="120" cy="133" r="3.4" fill="#d9b25a"/>` },
+ { id:"jog", name:"Джоггеры, пыльная роза", cat:"bottoms", slot:"bottom", z:1, price:1690, rating:4.3, ages:[2,9], size:"Рост 92–134 см", isNew:false,
+   crop:[56,176,88,186],
+   svg: G("M70,186 Q100,180 130,186 L131,348 Q124,358 104,356 L100,218 L96,356 Q76,358 69,348 Z","#d89aa4")
+      + G("M70,186 Q100,180 130,186 L130,199 Q100,193 70,199 Z","#c98793") + L("M96,197 L94,210 M104,197 L106,210","#f6eef0",1.5)
+      + L("M70,340 L96,342 M104,342 L130,340","#c48590",3) },
+ { id:"tutu", name:"Юбка-пачка из фатина", cat:"bottoms", slot:"bottom", z:1, price:1990, rating:4.8, ages:[2,8], size:"Рост 86–128 см", isNew:true,
+   crop:[44,178,112,88],
+   svg: `<path d="M72,188 Q100,184 128,188 L152,252 Q145,260 138,253 Q131,262 124,254 Q117,263 110,255 Q103,264 96,255 Q89,263 82,254 Q75,262 68,253 Q58,260 48,252 Z" fill="#f2b9ca" fill-opacity=".9" ${OUT}/>
+         <path d="M72,188 Q100,184 128,188 L144,236 Q138,243 131,237 Q124,245 117,238 Q110,246 103,239 Q96,246 89,239 Q82,245 75,238 Q66,244 56,236 Z" fill="#f8d0dc" fill-opacity=".92"/>`
+      + L("M80,200 L66,246 M92,200 L88,250 M108,200 L112,250 M120,200 L134,246","#e7a0b6",1,'stroke-opacity=".6"')
+      + G("M72,184 Q100,180 128,184 L128,196 Q100,192 72,196 Z","#e48fab") },
+ { id:"kedy", name:"Кеды «Старт»", cat:"shoes", slot:"shoes", z:.5, price:2490, rating:4.6, ages:[3,8], size:"Размер 24–32", isNew:false,
+   crop:[60,350,80,36],
+   svg: mirror(G("M67,376 Q66,362 76,358 L90,358 Q100,362 101,374 L101,377 L67,377 Z","#f4f2ee") + `<path d="M66,374 L102,374 L102,381 Q84,383 66,381 Z" fill="#e06a3a"/>` + L("M77,367 Q88,361 97,368","#e06a3a",2.2) + L("M80,360 L84,365 M85,359 L88,364","#9a948c",1)) },
+ { id:"boots", name:"Резиновые сапоги «Лужа»", cat:"shoes", slot:"shoes", z:2.5, price:1890, old:2290, rating:4.7, ages:[1,9], size:"Размер 22–33", isNew:false,
+   crop:[60,308,80,80],
+   svg: mirror(G("M71,314 L99,314 L99,360 Q104,364 103,380 L67,380 Q66,366 71,360 Z","#3e64ad") + G("M71,314 L99,314 L99,323 L71,323 Z","#30528f") + `<path d="M66,376 L104,376 L104,383 L66,383 Z" fill="#262a38"/>` + L("M76,330 L76,356","#fff",2,'stroke-opacity=".22"')) },
+ { id:"beanie", name:"Шапка с помпоном", cat:"hats", slot:"hat", z:7, price:990, rating:4.5, ages:[1,8], size:"Обхват 46–54 см", isNew:false,
+   crop:[62,2,76,58],
+   svg: G("M72,50 Q72,20 100,20 Q128,20 128,50 Z","url(#knit)") + G("M70,42 Q100,36 130,42 L130,56 Q100,50 70,56 Z","#b9542f")
+      + L("M78,46 L78,53 M86,44 L86,51 M94,43 L94,50 M102,43 L102,50 M110,44 L110,51 M118,45 L118,52","#a0482a",1.4)
+      + `<circle cx="100" cy="15" r="10" fill="#f1e6d6"/><circle cx="96" cy="12" r="3" fill="#fff" fill-opacity=".6"/>` },
+ { id:"panama", name:"Панама из льна", cat:"hats", slot:"hat", z:7, price:1190, rating:4.2, ages:[1,6], size:"Обхват 44–52 см", isNew:true,
+   crop:[54,16,92,48],
+   svg: G("M75,46 Q76,22 100,22 Q124,22 125,46 Z","#e6d2a6") + G("M58,52 Q100,38 142,52 Q140,60 132,61 Q100,50 68,61 Q60,60 58,52 Z","#dcc596")
+      + `<path d="M75,40 Q100,36 125,40 L125,46 Q100,42 75,46 Z" fill="#c65f45"/>` + L("M66,56 Q100,46 134,56","#c6ae7f",1,'stroke-dasharray="2 2"') },
+];
+const BY = Object.fromEntries(P.map(p => [p.id, p]));
+const SLOT_NAMES = {top:"верх", mid:"худи", vest:"жилет", outer:"куртка", bottom:"низ", shoes:"обувь", hat:"шапка"};
+
+const CATS = [
+  {id:"all", name:"Все вещи", icon:"tee"},
+  {id:"tops", name:"Футболки и лонгсливы", icon:"long"},
+  {id:"hoodies", name:"Худи и жилеты", icon:"hoodie"},
+  {id:"outer", name:"Дождевики", icon:"rain"},
+  {id:"bottoms", name:"Брюки и юбки", icon:"jog"},
+  {id:"overalls", name:"Комбинезоны", icon:"over"},
+  {id:"shoes", name:"Обувь", icon:"kedy"},
+  {id:"hats", name:"Шапки и панамы", icon:"beanie"},
+];
+const AGES = [[1,2,"1–2 года"],[3,4,"3–4 года"],[5,6,"5–6 лет"],[7,9,"7–9 лет"]];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const rub = n => new Intl.NumberFormat("ru-RU").format(n) + " ₽";
+const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const thumb = (p, cls = "") => `<svg class="${cls}" viewBox="${p.crop.join(" ")}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${p.svg}</svg>`;
+const store = {
+  get(k, d){ try { const v = localStorage.getItem("kroha:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v){ try { localStorage.setItem("kroha:" + k, JSON.stringify(v)); } catch {} }
+};
+const ICON = {
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>',
+  hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5a2 2 0 1 1 2-2c0 1.2-2 1.5-2 3L3.5 15a1.4 1.4 0 0 0 .9 2.5h15.2a1.4 1.4 0 0 0 .9-2.5L12 8.5"/></svg>',
+  bag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15l-1.3 10.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8L4.5 9Z"/><path d="M8.5 9V7.5a3.5 3.5 0 0 1 7 0V9"/><path d="M12 12.5v5M9.5 15h5"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+};
+
+/* ---------- state ---------- */
+const S = {
+  view:"all", cat:"all", ages:new Set(), q:"", min:0, max:5000, sort:"new", favOnly:false,
+  favs:new Set(store.get("favs", ["rain","tutu"])),
+  cart:new Map(store.get("cart", [])),
+  fit:{ top:"tee", bottom:"jog", shoes:"kedy" },   // sample outfit so the room opens dressed
+  dressedOnce:false,
+};
+
+/* ---------- catalog ---------- */
+function filtered(){
+  let list = P.filter(p =>
+    (S.view !== "new" || p.isNew) && (S.view !== "sale" || p.old) &&
+    (S.cat === "all" || p.cat === S.cat) &&
+    (!S.favOnly || S.favs.has(p.id)) &&
+    p.price >= S.min && p.price <= S.max &&
+    (!S.q || p.name.toLowerCase().includes(S.q)) &&
+    (!S.ages.size || [...S.ages].some(i => AGES[i][0] <= p.ages[1] && AGES[i][1] >= p.ages[0])));
+  const f = { new:(a,b)=>(b.isNew-a.isNew)||(P.indexOf(a)-P.indexOf(b)), rating:(a,b)=>b.rating-a.rating, asc:(a,b)=>a.price-b.price, desc:(a,b)=>b.price-a.price }[S.sort];
+  return list.sort(f);
+}
+function cardHTML(p){
+  const inFit = S.fit[p.slot] === p.id, fav = S.favs.has(p.id);
+  const off = p.old ? Math.round((1 - p.price / p.old) * 100) : 0;
+  return `<article class="card" data-id="${p.id}">
+    <div class="side">
+      <button class="rbtn fav" aria-pressed="${fav}" aria-label="${fav ? "Убрать из избранного" : "В избранное"}">${ICON.heart}</button>
+      <button class="rbtn hang" aria-pressed="${inFit}" data-tip="${inFit ? "Снять с модели" : "Примерить"}" aria-label="${inFit ? "Снять с модели" : "Примерить на модель"}">${ICON.hanger}</button>
+    </div>
+    <span class="rate"><b>★</b>${p.rating.toFixed(1)}</span>
+    ${p.isNew ? '<span class="tag">Новинка</span>' : ""}
+    <div class="pic">${thumb(p, "art")}</div>
+    <div class="meta">
+      <span class="name">${p.name}</span>
+      <div class="price ${p.old ? "sale" : ""}"><span class="now">${rub(p.price)}</span>${p.old ? `<s>${rub(p.old)}</s><span class="off">−${off}%</span>` : ""}</div>
+      <span class="size">${p.size}</span>
+    </div>
+    <button class="cart" aria-label="Добавить в корзину: ${p.name}">${ICON.bag}</button>
+  </article>`;
+}
+function renderGrid(){
+  const list = filtered();
+  $("#grid").innerHTML = list.length ? list.map(cardHTML).join("") : `<div class="empty">Ничего не нашлось. Попробуйте снять часть фильтров.</div>`;
+  $("#count").textContent = `${list.length} ${plural(list.length, "товар", "товара", "товаров")}`;
+  $("#title").firstChild.textContent = { all:"Каталог", new:"Новинки", sale:"Распродажа" }[S.view];
+}
+function renderFilters(){
+  $("#cats").innerHTML = CATS.map(c => {
+    const n = c.id === "all" ? P.length : P.filter(p => p.cat === c.id).length;
+    return `<button class="cat" data-cat="${c.id}" aria-pressed="${S.cat === c.id}"><span class="dot">${thumb(BY[c.icon])}</span>${c.name}<span class="n">${n}</span></button>`;
+  }).join("");
+  $("#ages").innerHTML = AGES.map((a, i) => `<button class="chip" data-age="${i}" aria-pressed="${S.ages.has(i)}">${a[2]}</button>`).join("");
+  $("#favOnly").setAttribute("aria-pressed", S.favOnly);
+  const lo = +$("#pmin").value, hi = +$("#pmax").value;
+  $("#rfill").style.left = lo / 50 + "%"; $("#rfill").style.right = 100 - hi / 50 + "%";
+  $("#pminL").textContent = rub(lo); $("#pmaxL").textContent = rub(hi);
+  document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === S.view));
+}
+const render = () => { renderFilters(); renderGrid(); };
+
+/* ---------- fitting room ---------- */
+const STAGE_VB = [-50, 4, 300, 380];
+const fitIds = () => Object.values(S.fit).map(id => BY[id]).sort((a, b) => a.z - b.z);
+function stageSVG(enterId){
+  return MANNEQUIN + `<g id="layers">${fitIds().map(p => `<g class="layer${p.id === enterId ? " enter" : ""}" data-id="${p.id}">${p.svg}</g>`).join("")}</g>`;
+}
+function renderStage(enterId){ $("#stage").innerHTML = stageSVG(enterId); }
+function renderPicks(newId){
+  const ids = fitIds();
+  $("#picks").innerHTML = ids.length
+    ? ids.map(p => `<div class="pick${p.id === newId ? " new" : ""}" title="${p.name}">${thumb(p)}<button data-un="${p.id}" aria-label="Снять: ${p.name}">${ICON.x}</button></div>`).join("")
+    : `<span class="ph">Пока пусто, выберите вещь</span>`;
+  $("#pickCount").textContent = `${ids.length} ${plural(ids.length, "вещь", "вещи", "вещей")}`;
+  $("#tryCnt").textContent = ids.length;
+  $("#lookToCart").disabled = !ids.length;
+  $("#tryAv").innerHTML = `<svg viewBox="62 0 76 76">${MANNEQUIN}${ids.filter(p => p.slot === "hat" || p.z >= 2).map(p => p.svg).join("")}</svg>`;
+}
+function syncHangers(){
+  document.querySelectorAll(".card").forEach(c => {
+    const p = BY[c.dataset.id], on = S.fit[p.slot] === p.id, b = c.querySelector(".hang");
+    b.setAttribute("aria-pressed", on); b.dataset.tip = on ? "Снять с модели" : "Примерить";
+    b.setAttribute("aria-label", on ? "Снять с модели" : "Примерить на модель");
+  });
+}
+const fitEl = $("#fit"), tryEl = $("#tryon");
+const isOpen = () => !fitEl.classList.contains("closed");
+function openFit(open){
+  fitEl.classList.toggle("closed", !open); tryEl.classList.toggle("hide", open);
+  fitEl.setAttribute("aria-hidden", !open); fitEl.inert = !open;
+}
+
+/* where the visible drawing of a viewBox lands on screen (preserveAspectRatio meet) */
+function placed(el, vb){
+  const r = el.getBoundingClientRect(), s = Math.min(r.width / vb[2], r.height / vb[3]);
+  return { x: r.left + (r.width - vb[2] * s) / 2 - vb[0] * s, y: r.top + (r.height - vb[3] * s) / 2 - vb[1] * s, s };
+}
+function fly(p, fromSvg){
+  if (reduce || !fromSvg) return Promise.resolve(null);
+  const a = placed(fromSvg, p.crop), b = placed($("#stage"), STAGE_VB);
+  const [cx, cy, cw, ch] = p.crop;
+  const w = cw * a.s, h = ch * a.s, k = b.s / a.s;
+  const x0 = a.x + cx * a.s, y0 = a.y + cy * a.s;
+  const c0 = { x: x0 + w / 2, y: y0 + h / 2 };
+  const c1 = { x: b.x + (cx + cw / 2) * b.s, y: b.y + (cy + ch / 2) * b.s };
+  const ctrl = { x: (c0.x + c1.x) / 2 + 40, y: Math.min(c0.y, c1.y) - 140 };
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  el.setAttribute("viewBox", p.crop.join(" ")); el.setAttribute("class", "flyer");
+  el.style.width = w + "px"; el.style.height = h + "px"; el.style.left = x0 + "px"; el.style.top = y0 + "px";
+  el.innerHTML = p.svg; document.body.appendChild(el);
+  const T = [0, .18, .4, .62, .82, 1], R = [0, -16, 11, -7, 3, 0], SK = [0, 16, -12, 8, -3, 0], SY = [1, .9, 1.08, .95, 1.03, 1];
+  const frames = T.map((t, i) => {
+    const u = 1 - t, px = u*u*c0.x + 2*u*t*ctrl.x + t*t*c1.x, py = u*u*c0.y + 2*u*t*ctrl.y + t*t*c1.y;
+    const sc = 1 + (k - 1) * t + Math.sin(t * Math.PI) * .18;
+    return { transform:`translate(${px - c0.x}px,${py - c0.y}px) rotate(${R[i]}deg) skewX(${SK[i]}deg) scale(${sc},${sc * SY[i]})`, offset:t };
+  });
+  return el.animate(frames, { duration: 980, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" }).finished.then(() => el);
+}
+
+let queue = Promise.resolve();
+function wear(id, fromSvg){
+  queue = queue.then(async () => {
+    const p = BY[id];
+    if (!isOpen()) { openFit(true); await wait(420); }
+    const replaced = S.fit[p.slot];
+    if (replaced) {
+      const old = $(`#stage .layer[data-id="${replaced}"]`);
+      if (old) { old.classList.add("leave"); }
+    }
+    S.fit[p.slot] = id; renderPicks(id); syncHangers();
+    const clone = await fly(p, fromSvg);
+    const dress = $("#dress");
+    dress.classList.add("on");
+    await wait(reduce ? 0 : S.dressedOnce ? 750 : 1300);
+    S.dressedOnce = true;
+    renderStage(id);
+    dress.classList.remove("on");
+    if (clone) clone.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: "forwards" }).finished.then(() => clone.remove());
+    await wait(350);
+    const sh = $("#sheen"); sh.classList.remove("go"); void sh.offsetWidth; sh.classList.add("go");
+    if (replaced) toast(`Заменили: ${SLOT_NAMES[p.slot]}`);
+  });
+}
+function unwear(id){
+  queue = queue.then(async () => {
+    const p = BY[id]; if (S.fit[p.slot] !== id) return;
+    const g = $(`#stage .layer[data-id="${id}"]`);
+    delete S.fit[p.slot]; renderPicks(); syncHangers();
+    if (g && !reduce) { g.classList.add("leave"); await wait(340); }
+    renderStage();
+  });
+}
+
+/* ---------- cart ---------- */
+function saveCart(){ store.set("cart", [...S.cart]); }
+function addToCart(id, n = 1, silent){
+  S.cart.set(id, (S.cart.get(id) || 0) + n); saveCart(); renderCart(true);
+  if (!silent) toast(`В корзине: ${BY[id].name}`);
+}
+function renderCart(bump){
+  const n = [...S.cart.values()].reduce((a, b) => a + b, 0), b = $("#cartCount");
+  b.hidden = !n; b.textContent = n;
+  if (bump) { b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
+  const sum = [...S.cart].reduce((a, [id, q]) => a + BY[id].price * q, 0);
+  $("#lines").innerHTML = S.cart.size ? [...S.cart].map(([id, q]) => { const p = BY[id]; return `<div class="line">
+      <div class="th">${thumb(p)}</div>
+      <div><div class="nm">${p.name}</div><div class="pr">${rub(p.price)} · ${p.size}</div></div>
+      <div class="qty"><button data-dec="${id}" aria-label="Меньше">−</button><span>${q}</span><button data-inc="${id}" aria-label="Больше">+</button></div></div>`; }).join("")
+    : `<div class="empty">Корзина пуста. Добавьте вещи из каталога или весь образ из примерочной.</div>`;
+  $("#sum").textContent = rub(sum);
+  $("#checkout").disabled = !S.cart.size; $("#checkout").style.opacity = S.cart.size ? 1 : .45;
+  $("#note").textContent = sum >= 5000 || !sum ? "Доставка бесплатно от 5 000 ₽." : `До бесплатной доставки: ${rub(5000 - sum)}.`;
+}
+function drawer(open){ $("#drawer").classList.toggle("on", open); $("#scrim").classList.toggle("on", open); $("#drawer").inert = !open; }
+
+let tt;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2000); }
+
+/* ---------- events ---------- */
+$("#grid").addEventListener("click", e => {
+  const card = e.target.closest(".card"); if (!card) return;
+  const id = card.dataset.id, p = BY[id];
+  if (e.target.closest(".fav")) {
+    S.favs.has(id) ? S.favs.delete(id) : S.favs.add(id); store.set("favs", [...S.favs]);
+    const b = e.target.closest(".fav"), on = S.favs.has(id);
+    b.setAttribute("aria-pressed", on); b.setAttribute("aria-label", on ? "Убрать из избранного" : "В избранное");
+    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    if (S.favOnly) renderGrid();
+  } else if (e.target.closest(".hang")) {
+    S.fit[p.slot] === id ? unwear(id) : wear(id, card.querySelector(".art"));
+  } else if (e.target.closest(".cart")) {
+    const c = e.target.closest(".cart"); c.classList.remove("added"); void c.offsetWidth; c.classList.add("added");
+    setTimeout(() => c.classList.remove("added"), 900);
+    addToCart(id);
+  }
+});
+$("#picks").addEventListener("click", e => { const b = e.target.closest("[data-un]"); if (b) unwear(b.dataset.un); });
+$("#cats").addEventListener("click", e => { const b = e.target.closest(".cat"); if (b) { S.cat = b.dataset.cat; render(); } });
+$("#ages").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; const i = +b.dataset.age; S.ages.has(i) ? S.ages.delete(i) : S.ages.add(i); render(); });
+$("#favOnly").addEventListener("click", () => { S.favOnly = !S.favOnly; render(); });
+$("#q").addEventListener("input", e => { S.q = e.target.value.trim().toLowerCase(); renderGrid(); });
+$("#sort").addEventListener("change", e => { S.sort = e.target.value; renderGrid(); });
+["#pmin", "#pmax"].forEach(s => $(s).addEventListener("input", () => {
+  let lo = +$("#pmin").value, hi = +$("#pmax").value;
+  if (lo > hi - 200) { if (s === "#pmin") $("#pmin").value = lo = hi - 200; else $("#pmax").value = hi = lo + 200; }
+  S.min = lo; S.max = hi; render();
+}));
+$("#reset").addEventListener("click", () => {
+  Object.assign(S, { view:"all", cat:"all", q:"", min:0, max:5000, favOnly:false }); S.ages.clear();
+  $("#q").value = ""; $("#pmin").value = 0; $("#pmax").value = 5000; render();
+});
+document.querySelectorAll(".nav button").forEach(b => b.addEventListener("click", () => { S.view = b.dataset.view; render(); }));
+const jump = () => { $("#q").focus(); $("#q").scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" }); };
+$("#searchJump").addEventListener("click", jump);
+$("#themeBtn").addEventListener("click", () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const next = cur === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = next; store.set("theme", next);
+});
+$("#fitBtn").addEventListener("click", () => openFit(!isOpen()));
+$("#fitClose").addEventListener("click", () => openFit(false));
+$("#tryon").addEventListener("click", () => openFit(true));
+$("#startOver").addEventListener("click", () => { queue = queue.then(() => { S.fit = {}; renderPicks(); renderStage(); syncHangers(); toast("Образ сброшен"); }); });
+$("#lookToCart").addEventListener("click", () => { const ids = fitIds(); ids.forEach(p => addToCart(p.id, 1, true)); toast(`Образ в корзине: ${ids.length} ${plural(ids.length, "вещь", "вещи", "вещей")}`); });
+$("#cartBtn").addEventListener("click", () => drawer(true));
+$("#drClose").addEventListener("click", () => drawer(false));
+$("#scrim").addEventListener("click", () => drawer(false));
+$("#lines").addEventListener("click", e => {
+  const inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]");
+  if (inc) addToCart(inc.dataset.inc, 1, true);
+  if (dec) { const id = dec.dataset.dec, q = S.cart.get(id) - 1; q > 0 ? S.cart.set(id, q) : S.cart.delete(id); saveCart(); renderCart(); }
+});
+$("#checkout").addEventListener("click", () => { $("#note").textContent = "Это демо-витрина: оплата здесь не подключена."; });
+const box = $("#box");
+$("#zoom").addEventListener("click", () => { $("#boxStage").innerHTML = stageSVG(); box.classList.add("on"); $("#scrim").classList.add("on"); $("#boxClose").focus(); });
+const closeBox = () => { box.classList.remove("on"); if (!$("#drawer").classList.contains("on")) $("#scrim").classList.remove("on"); };
+$("#boxClose").addEventListener("click", closeBox);
+box.addEventListener("click", e => { if (e.target === box) closeBox(); });
+$("#scrim").addEventListener("click", closeBox);
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); jump(); }
+  if (e.key === "Escape") { drawer(false); closeBox(); }
+});
+
+/* ---------- boot ---------- */
+/* dark by default, like the reference; the sun button switches and remembers */
+document.documentElement.dataset.theme = store.get("theme", "dark");
+render(); renderStage(); renderPicks(); renderCart(); drawer(false);
+openFit(innerWidth > 640);
+})();
+</script>
+<!-- PAGE END -->
+</body>
+</html>
