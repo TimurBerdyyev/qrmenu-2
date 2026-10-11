@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- PAGE START -->
+<title>Кибер-Академия</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: left rail of lessons + a "terminal console" workspace; dark security-ops look, lime-on-slate */
+:root{
+  --bg:#0a0e12; --panel:#10151b; --panel-2:#161d25; --inset:#0c1116; --line:rgba(140,170,200,.12);
+  --fg:#e7edf3; --muted:#8294a6; --soft:#b4c2d0;
+  --accent:#6ee7a0; --accent-dim:#1c3b2b; --cyan:#58c7e0; --amber:#f2c14e; --rose:#ff6b7a; --violet:#b495f5;
+  --shadow:0 24px 70px rgba(0,0,0,.5);
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eef2f6; --panel:#ffffff; --panel-2:#f3f6f9; --inset:#0f1620; --line:rgba(30,50,70,.12);
+  --fg:#111b25; --muted:#5a6b7b; --soft:#38495a; --accent-dim:#d6f3e2; --shadow:0 24px 60px rgba(30,45,70,.14);
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#eef2f6; --panel:#ffffff; --panel-2:#f3f6f9; --inset:#0f1620; --line:rgba(30,50,70,.12);
+  --fg:#111b25; --muted:#5a6b7b; --soft:#38495a; --accent-dim:#d6f3e2; --shadow:0 24px 60px rgba(30,45,70,.14);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:500 14px/1.5 var(--sans);
+  background-image:radial-gradient(900px 500px at 100% -5%,rgba(110,231,160,.07),transparent 60%),radial-gradient(700px 600px at -10% 110%,rgba(88,199,224,.06),transparent 60%);
+  padding-inline:16px;padding-block:18px 36px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,textarea{font:inherit;color:inherit}
+a{color:var(--cyan)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.app{max-width:1200px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:clip}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel-2),transparent);position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px;letter-spacing:-.01em}
+.brand .mark{width:34px;height:34px;border-radius:10px;background:var(--accent-dim);border:1px solid rgba(110,231,160,.35);display:grid;place-items:center;color:var(--accent)}
+.brand .mark svg{width:19px;height:19px}
+.brand b{color:var(--accent)}
+.safe{margin-left:6px;font:600 10.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
+  border:1px solid rgba(110,231,160,.3);background:rgba(110,231,160,.08);padding:5px 9px;border-radius:999px;white-space:nowrap}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.progress-wrap{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted)}
+.bar{width:120px;height:7px;border-radius:5px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--accent));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.icnbtn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--panel-2);transition:.2s}
+.icnbtn:hover{color:var(--fg);border-color:var(--accent)}
+.icnbtn svg{width:17px;height:17px}
+
+.wrap{display:grid;grid-template-columns:288px minmax(0,1fr);gap:0}
+/* rail */
+.rail{border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:6px;background:var(--panel);max-height:calc(100vh - 70px);overflow:auto;position:sticky;top:70px}
+.rail h2{margin:4px 6px 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lesson{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;text-align:left;color:var(--soft);border:1px solid transparent;transition:.18s;position:relative}
+.lesson:hover{background:var(--panel-2)}
+.lesson[aria-current="true"]{background:var(--panel-2);border-color:var(--line)}
+.lesson[aria-current="true"]::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--accent)}
+.lesson .ix{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font:700 13px var(--mono);background:var(--inset);color:var(--muted);border:1px solid var(--line)}
+.lesson.done .ix{background:var(--accent-dim);color:var(--accent);border-color:rgba(110,231,160,.3)}
+.lesson.done .ix svg{width:15px;height:15px}
+.lesson .tx{min-width:0}
+.lesson .tx b{display:block;font-size:13.5px;font-weight:600;color:var(--fg);line-height:1.25}
+.lesson .tx span{font-size:11.5px;color:var(--muted)}
+.lesson .diff{margin-left:auto;font:700 9.5px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;padding:4px 6px;border-radius:6px;flex:none}
+.d-easy{color:var(--accent);background:rgba(110,231,160,.1)}
+.d-med{color:var(--amber);background:rgba(242,193,78,.12)}
+.d-hard{color:var(--rose);background:rgba(255,107,122,.12)}
+.railfoot{margin-top:auto;padding:12px 8px 4px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line)}
+
+/* main */
+.main{padding:26px 30px 36px;min-width:0}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.crumbs .tag{padding:3px 8px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line);font-family:var(--mono)}
+.h1{margin:0 0 6px;font:800 27px/1.12 var(--sans);letter-spacing:-.02em;text-wrap:balance}
+.lede{margin:0 0 20px;color:var(--soft);max-width:70ch;font-size:15px}
+.card{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px}
+.card h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.card h3 svg{width:15px;height:15px;color:var(--accent)}
+.card p{margin:0 0 10px;color:var(--soft)}
+.card p:last-child{margin-bottom:0}
+.card code{font-family:var(--mono);font-size:12.5px;background:var(--inset);padding:2px 6px;border-radius:5px;color:var(--cyan);border:1px solid var(--line)}
+.note{border-left:3px solid var(--amber);background:rgba(242,193,78,.06);padding:12px 14px;border-radius:0 10px 10px 0;margin-bottom:16px;font-size:13.5px;color:var(--soft)}
+.note b{color:var(--amber)}
+.defend{border-left:3px solid var(--cyan);background:rgba(88,199,224,.06);padding:12px 14px;border-radius:0 10px 10px 0;margin-bottom:16px;font-size:13.5px;color:var(--soft)}
+.defend b{color:var(--cyan)}
+
+/* terminal workspace */
+.term{background:var(--inset);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:16px}
+.term-head{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
+.dot{width:11px;height:11px;border-radius:50%}
+.dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+.term-head .ttl{margin-left:8px;font:600 12px var(--mono);color:var(--muted)}
+.term-body{padding:16px;font-family:var(--mono);font-size:13px;color:var(--soft)}
+.term-body .out{white-space:pre-wrap;word-break:break-word;line-height:1.65;margin:0}
+.term-body .ln{display:block}
+.c-k{color:var(--violet)}.c-s{color:var(--accent)}.c-n{color:var(--amber)}.c-c{color:var(--muted)}.c-e{color:var(--rose)}.c-i{color:var(--cyan)}
+
+/* interaction widgets */
+.lab{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field textarea,.field input[type=text]{background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-family:var(--mono);font-size:13px;resize:vertical;min-height:0}
+.field textarea{min-height:70px}
+.field textarea:focus,.field input:focus{border-color:var(--accent);outline:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:11px;font-weight:700;font-size:13.5px;transition:.18s}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--accent);color:#07140d}
+.btn.primary:hover{box-shadow:0 0 0 3px rgba(110,231,160,.2)}
+.btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--soft)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--fg)}
+.chipset{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);color:var(--soft);transition:.15s}
+.chip:hover{border-color:var(--accent);color:var(--fg)}
+.chip[aria-pressed="true"]{background:var(--accent-dim);border-color:rgba(110,231,160,.4);color:var(--accent)}
+.slider-row{display:flex;align-items:center;gap:14px}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent)}
+.slider-row .val{font-family:var(--mono);min-width:96px;text-align:right;color:var(--cyan)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-family:var(--mono);font-size:12.5px}
+.kv .k{color:var(--muted)}
+.kv .v{color:var(--soft);word-break:break-all}
+
+/* flag box */
+.flagbox{display:flex;flex-direction:column;gap:10px;border:1px dashed var(--line);border-radius:14px;padding:16px;background:var(--panel-2)}
+.flagbox .fh{display:flex;align-items:center;gap:9px;font-weight:700}
+.flagbox .fh svg{width:17px;height:17px;color:var(--accent)}
+.flag-in{display:flex;gap:10px;flex-wrap:wrap}
+.flag-in input{flex:1;min-width:200px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 14px;height:44px;font-family:var(--mono);font-size:14px;letter-spacing:.02em}
+.flag-in input.shake{animation:shake .4s;border-color:var(--rose)}
+@keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+.verdict{font-size:13px;min-height:19px;font-weight:600}
+.verdict.ok{color:var(--accent)}.verdict.no{color:var(--rose)}
+.solved-banner{display:flex;align-items:center;gap:12px;padding:15px 18px;border-radius:14px;background:linear-gradient(90deg,rgba(110,231,160,.14),rgba(88,199,224,.08));border:1px solid rgba(110,231,160,.3);margin-bottom:16px}
+.solved-banner svg{width:26px;height:26px;color:var(--accent);flex:none}
+.solved-banner b{color:var(--accent)}
+.solved-banner .next{margin-left:auto}
+.hint{font-size:12.5px;color:var(--muted)}
+.hint button{color:var(--cyan);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.hint-text{margin-top:8px;padding:10px 12px;background:var(--inset);border-radius:9px;border:1px solid var(--line);color:var(--soft);font-size:12.5px}
+
+/* confetti */
+.spark{position:fixed;top:0;left:0;width:9px;height:9px;z-index:200;pointer-events:none;border-radius:2px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,24px);opacity:0;background:var(--fg);color:var(--bg);font-weight:700;font-size:13px;padding:11px 18px;border-radius:12px;z-index:150;transition:.35s cubic-bezier(.2,.9,.25,1);pointer-events:none;max-width:calc(100% - 32px)}
+.toast.on{transform:translate(-50%,0);opacity:1}
+
+.hide{display:none!important}
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr}
+  .rail{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);flex-direction:row;overflow-x:auto;gap:8px}
+  .rail h2,.railfoot{display:none}
+  .lesson{flex:0 0 auto;width:210px}
+  .main{padding:20px 16px 30px}
+  .progress-wrap .lbl{display:none}
+}
+@media (max-width:560px){
+  body{padding-inline:8px}
+  .app{border-radius:16px}
+  .top{padding:12px 14px;gap:10px}
+  .brand{font-size:15px}.safe{display:none}
+  .bar{width:70px}
+  .h1{font-size:22px}
+  .main{padding:18px 13px 28px}
+  .card{padding:15px}
+}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+<!-- HEAD END -->
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.3 7.8 8 9 4.7-1.2 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+      <span>Кибер<b>·</b>Академия</span>
+      <span class="safe">учебная песочница</span>
+    </div>
+    <div class="right">
+      <div class="progress-wrap"><span class="lbl">Прогресс</span><span class="bar"><i id="barFill"></i></span><span class="mono" id="progTxt">0/0</span></div>
+      <button class="icnbtn" id="themeBtn" aria-label="Сменить тему"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <button class="icnbtn" id="resetBtn" aria-label="Сбросить прогресс"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="rail" id="rail" aria-label="Уроки"><h2>Траектория</h2></nav>
+    <main class="main" id="main" aria-live="polite"></main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = {
+  get(k, d){ try { const v = localStorage.getItem("cyberacad:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v){ try { localStorage.setItem("cyberacad:" + k, JSON.stringify(v)); } catch {} }
+};
+/* ---- tiny codec helpers (used by labs) ---- */
+const b64 = s => { try { return btoa(unescape(encodeURIComponent(s))); } catch { return ""; } };
+const unb64 = s => { try { return decodeURIComponent(escape(atob(s.trim()))); } catch { return null; } };
+const caesar = (s, k) => s.replace(/[a-zа-яё]/gi, c => {
+  const up = c === c.toUpperCase();
+  if (/[a-z]/i.test(c)) { const b = 97; return String.fromCharCode((c.toLowerCase().charCodeAt(0) - b + (k % 26 + 26)) % 26 + b)[up ? "toUpperCase" : "toLowerCase"](); }
+  const b = 1072, a = "ёе".includes(c.toLowerCase()) ? null : null; // keep latin focus
+  return c;
+});
+const esc = s => s.replace(/[&<>]/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[m]));
+
+/* ================= curriculum ================= */
+const FLAG = id => "FLAG{" + id + "}";
+const LESSONS = [
+{
+  id:"intro", num:"00", title:"Что такое этичный хакинг", sub:"Образ мышления и правила", diff:"easy", dkey:"d-easy",
+  flag:"i_will_only_hack_what_i_own",
+  render(ctx){
+    return `
+    <div class="card"><h3>${ICON.shield} Белый, серый, чёрный</h3>
+      <p><b>White-hat</b> (этичный хакер) ищет уязвимости <b>с разрешения владельца</b>, чтобы их закрыли. <b>Black-hat</b> атакует без спроса ради выгоды. <b>Grey-hat</b> — посередине и часто нарушает закон, даже без злого умысла.</p>
+      <p>Профессия называется <code>пентестер</code> или <code>security researcher</code>. Главный навык — не «взлом», а понимание того, как система устроена и где она доверяет данным, которым доверять нельзя.</p>
+    </div>
+    <div class="note"><b>Золотое правило.</b> Тестировать можно только то, что принадлежит вам, или на что есть письменное разрешение (scope). Атака на чужую систему без спроса — это преступление в большинстве стран. Всё в этой академии происходит в изолированной песочнице у вас в браузере.</div>
+    <div class="card"><h3>${ICON.list} Легальные полигоны для практики</h3>
+      <p>Когда захотите пойти дальше — тренируйтесь только на специально созданных площадках: Hack The Box, TryHackMe, PortSwigger Web Security Academy, OverTheWire, picoCTF, root-me. Там всё разрешено и безопасно.</p>
+    </div>
+    <div class="card"><h3>${ICON.terminal} Задание</h3>
+      <p>Чтобы получить первый флаг, подтвердите правило этичного хакера. Нажмите кнопку — она выдаст флаг, который нужно вставить ниже.</p>
+      <div class="row"><button class="btn primary" id="oath">${ICON.check} Принимаю правило</button></div>
+      <pre class="out" id="oathOut" style="margin-top:12px"></pre>
+    </div>`;
+  },
+  wire(ctx){
+    $("#oath").addEventListener("click", () => {
+      typeOut($("#oathOut"), [
+        ["c-c","# Правило этичного хакера принято."],
+        ["c-c","# Теперь вы тестируете только то, что вам разрешено."],
+        ["c-s","flag -> " + FLAG(this.flag)]
+      ]);
+    });
+  }
+},
+{
+  id:"http", num:"01", title:"Анатомия HTTP-запроса", sub:"Как браузер говорит с сервером", diff:"easy", dkey:"d-easy",
+  flag:"headers_tell_the_truth",
+  render(){
+    return `
+    <div class="card"><h3>${ICON.globe} Запрос и ответ</h3>
+      <p>Любое открытие страницы — это текстовый запрос к серверу и текстовый ответ. Пентестер первым делом смотрит именно на этот «сырой» обмен: метод, путь, заголовки, тело. В заголовках часто утекает лишнее.</p>
+    </div>
+    <div class="lab">
+      <div class="field"><label>Метод и путь</label>
+        <div class="row">
+          <div class="chipset" id="methods"></div>
+          <input type="text" id="path" value="/account?id=1" style="flex:1;min-width:160px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px" aria-label="Путь">
+        </div>
+      </div>
+      <div class="field"><label>Добавить заголовки</label><div class="chipset" id="hdrs"></div></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">request & response · learn.local</span></div>
+      <div class="term-body"><pre class="out" id="httpOut"></pre></div>
+    </div>
+    <div class="defend"><b>Защита.</b> Сервер не должен отдавать заголовки вроде <code>Server: Apache/2.2.14</code> или <code>X-Powered-By: PHP/5.3</code> — по версии злоумышленник находит известные уязвимости. Эту строку и выдаёт флаг.</div>`;
+  },
+  wire(){
+    const state = { method:"GET", hdrs:new Set() };
+    const METHODS = ["GET","POST","PUT","DELETE"];
+    const HDRS = [
+      ["User-Agent","Mozilla/5.0"],["Authorization","Bearer eyJ…"],
+      ["Cookie","session=9f2a…"],["X-Powered-By","PHP/5.3.2"]
+    ];
+    const mWrap = $("#methods"), hWrap = $("#hdrs");
+    METHODS.forEach(m => { const b = el("button","chip",m); b.setAttribute("aria-pressed", m===state.method); b.onclick=()=>{state.method=m;[...mWrap.children].forEach(c=>c.setAttribute("aria-pressed",c.textContent===m));draw();}; mWrap.appendChild(b); });
+    HDRS.forEach(([k,v]) => { const b = el("button","chip",k); b.setAttribute("aria-pressed","false"); b.onclick=()=>{ state.hdrs.has(k)?state.hdrs.delete(k):state.hdrs.add(k); b.setAttribute("aria-pressed",state.hdrs.has(k)); draw(); }; hWrap.appendChild(b); });
+    $("#path").addEventListener("input", draw);
+    function draw(){
+      const path = $("#path").value || "/";
+      const lines = [];
+      lines.push(["c-k", state.method + " " + esc(path) + " HTTP/1.1"]);
+      lines.push(["c-i", "Host: learn.local"]);
+      HDRS.forEach(([k,v]) => { if (state.hdrs.has(k)) lines.push(["", esc(k) + ": " + esc(v)]); });
+      lines.push(["",""]);
+      lines.push(["c-c","— — — ответ сервера — — —"]);
+      lines.push(["c-s","HTTP/1.1 200 OK"]);
+      lines.push(["c-e","Server: nginx/1.18.0 (Ubuntu)"]);
+      lines.push(["c-e","X-Powered-By: Express 4.17.1  ← утечка версии!"]);
+      lines.push(["c-c","# совет: скрой Server и X-Powered-By, тогда флаг твой:"]);
+      lines.push(["c-s","flag -> " + FLAG("headers_tell_the_truth")]);
+      renderLines($("#httpOut"), lines);
+    }
+    draw();
+  }
+},
+{
+  id:"b64", num:"02", title:"Кодирование ≠ шифрование", sub:"Base64 туда и обратно", diff:"easy", dkey:"d-easy",
+  flag:"base64_is_not_encryption",
+  render(){
+    return `
+    <div class="card"><h3>${ICON.lock} Base64 — это не защита</h3>
+      <p>Base64 просто переводит байты в набор из 64 безопасных символов, чтобы данные прошли через текстовые каналы. Это обратимо <b>без всякого ключа</b>. Если «секрет» закодирован в Base64 — он не защищён.</p>
+    </div>
+    <div class="lab">
+      <div class="field"><label>Текст</label><textarea id="plain">Привет, мир!</textarea></div>
+      <div class="row"><button class="btn primary" id="enc">${ICON.arrow} Кодировать</button><button class="btn ghost" id="dec">Декодировать ↑</button></div>
+      <div class="field"><label>Base64</label><textarea id="code" class="mono"></textarea></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">intercepted.txt — расшифруй меня</span></div>
+      <div class="term-body"><pre class="out" id="chalOut"></pre><div class="row" style="margin-top:12px"><button class="btn ghost" id="solve">Декодировать перехват</button></div></div>
+    </div>
+    <div class="defend"><b>Защита.</b> Для секретов нужно настоящее шифрование (AES, а для паролей — хеширование bcrypt/argon2). Base64 годится только для транспорта данных, не для их сокрытия.</div>`;
+  },
+  wire(){
+    const sync = () => { const t = $("#plain").value; $("#code").value = b64(t); };
+    sync();
+    $("#enc").onclick = sync;
+    $("#dec").onclick = () => { const d = unb64($("#code").value); $("#plain").value = d == null ? "⚠ не похоже на Base64" : d; };
+    const secret = b64(FLAG("base64_is_not_encryption"));
+    renderLines($("#chalOut"), [["c-c","# перехваченная строка:"],["c-n", secret]]);
+    $("#solve").onclick = () => {
+      $("#code").value = secret; $("#plain").value = unb64(secret);
+      typeOut($("#chalOut"), [["c-c","# перехваченная строка:"],["c-n",secret],["c-c","# декодировано:"],["c-s", unb64(secret)]]);
+    };
+  }
+},
+{
+  id:"caesar", num:"03", title:"Шифр Цезаря и брутфорс", sub:"Перебор 25 сдвигов", diff:"med", dkey:"d-med",
+  flag:"CAESAR_IS_WEAK",
+  render(){
+    return `
+    <div class="card"><h3>${ICON.lock} Сдвиг по алфавиту</h3>
+      <p>Классический шифр: каждую букву сдвигают на N позиций. Ключей всего 25, поэтому он ломается полным перебором за секунду. Так работает идея «атаки грубой силой» (brute force).</p>
+    </div>
+    <div class="lab">
+      <div class="field"><label>Шифртекст</label><input type="text" id="ct" value="IODJ{FDHVDU_LV_ZHDN}" class="mono" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
+      <div class="slider-row"><span style="color:var(--muted);font-size:12px">Сдвиг</span><input type="range" id="shift" min="0" max="25" value="0"><span class="val mono" id="shiftVal">ROT 0</span></div>
+      <div class="field"><label>Результат</label><div class="mono" id="single" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:11px 13px;word-break:break-all"></div></div>
+      <div class="row"><button class="btn primary" id="brute">${ICON.terminal} Перебрать все 25 ключей</button></div>
+    </div>
+    <div class="term" style="margin-top:14px;display:none" id="bruteTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">bruteforce — найди читаемую строку</span></div>
+      <div class="term-body"><pre class="out" id="bruteOut"></pre></div>
+    </div>
+    <div class="defend"><b>Защита.</b> Стойкость шифра не должна зависеть от секретности алгоритма — только от ключа, и ключей должно быть астрономически много. Поэтому используют AES-256, а не самодельные сдвиги.</div>`;
+  },
+  wire(){
+    const upd = () => {
+      const k = +$("#shift").value; $("#shiftVal").textContent = "ROT " + k;
+      $("#single").textContent = caesar($("#ct").value, -k || 0);
+    };
+    $("#shift").addEventListener("input", upd); $("#ct").addEventListener("input", upd); upd();
+    $("#brute").onclick = () => {
+      $("#bruteTerm").style.display = "block";
+      const ct = $("#ct").value, lines = [["c-c","# перебор ROT 0..25:"]];
+      for (let k = 1; k < 26; k++){
+        const dec = caesar(ct, -k);
+        const hit = /FLAG\{/.test(dec);
+        lines.push([hit ? "c-s" : "c-c", "ROT " + String(k).padStart(2,"0") + "  " + dec + (hit ? "   ← читается!" : "")]);
+      }
+      typeOut($("#bruteOut"), lines, 45);
+    };
+  }
+},
+{
+  id:"inspect", num:"04", title:"Спрятано во фронтенде", sub:"Клиенту доверять нельзя", diff:"med", dkey:"d-med",
+  flag:"never_trust_the_client",
+  render(){
+    return `
+    <div class="card"><h3>${ICON.globe} Секрет в коде страницы</h3>
+      <p>Разработчики иногда прячут проверки или «секреты» в JavaScript на стороне клиента. Но клиент — это код, который уже у пользователя в руках: его можно прочитать и изменить. Проверять по-настоящему можно только на сервере.</p>
+      <p>Ниже — имитация «защищённой» админ-кнопки. Доступ к ней прячут на фронтенде. Найдите, где лежит пропуск.</p>
+    </div>
+    <div class="lab">
+      <div class="row">
+        <button class="btn ghost" id="adminBtn">${ICON.lock} Войти в админку</button>
+        <button class="btn ghost" id="viewSrc">${ICON.terminal} Показать «исходник» кнопки</button>
+      </div>
+      <div class="term" id="srcTerm" style="display:none"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">admin-button.js — view-source</span></div>
+        <div class="term-body"><pre class="out" id="srcOut"></pre></div>
+      </div>
+    </div>
+    <div class="defend"><b>Защита.</b> Никогда не храните секреты, цены, права доступа или ключи в клиентском коде. Всё, что ушло в браузер, считается публичным. Авторизацию проверяет только сервер.</div>`;
+  },
+  wire(){
+    $("#adminBtn").onclick = () => toast("Доступ запрещён — проверка на клиенте 🙄");
+    $("#viewSrc").onclick = () => {
+      $("#srcTerm").style.display = "block";
+      typeOut($("#srcOut"), [
+        ["c-k","function openAdmin(pass){"],
+        ["c-c","  // TODO: убрать до релиза!! пропуск не должен жить тут"],
+        ["c-n","  const BYPASS = \"" + FLAG("never_trust_the_client") + "\";"],
+        ["c-k","  if (pass === BYPASS) return grantAccess();"],
+        ["c-e","  else denyAccess();"],
+        ["c-k","}"]
+      ], 20);
+    };
+  }
+},
+{
+  id:"sqli", num:"05", title:"SQL-инъекция (симуляция)", sub:"Когда ввод становится командой", diff:"hard", dkey:"d-hard",
+  flag:"or_1_equals_1",
+  render(){
+    return `
+    <div class="card"><h3>${ICON.db} Данные смешались с кодом</h3>
+      <p>Если сервер склеивает запрос к базе прямо из пользовательского ввода, ввод может «вырваться» из строки и стать частью команды. Это самая классическая веб-уязвимость. Здесь безопасный <b>симулятор</b>: никакой настоящей базы нет, вводимое вами просто подставляется в шаблон, и мы показываем, что бы произошло.</p>
+    </div>
+    <div class="lab">
+      <div class="field"><label>Логин</label><input type="text" id="user" value="admin" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
+      <div class="field"><label>Пароль</label><input type="text" id="pass" value="hunter2" class="mono" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
+      <div class="chipset"><button class="chip" id="payload">подставить payload: <span class="mono">' OR '1'='1</span></button></div>
+      <div class="row"><button class="btn primary" id="login">${ICON.arrow} Выполнить запрос</button></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">vulnerable-login — симулятор</span></div>
+      <div class="term-body"><pre class="out" id="sqlOut"></pre></div>
+    </div>
+    <div class="defend"><b>Защита.</b> Используйте параметризованные запросы (prepared statements): <code>WHERE login = ?</code> с передачей значения отдельно. Тогда ввод всегда остаётся данными и никогда не становится командой. Плюс — валидация и минимальные права БД.</div>`;
+  },
+  wire(){
+    const run = () => {
+      const u = $("#user").value, p = $("#pass").value;
+      const q = `SELECT * FROM users WHERE login='${u}' AND pass='${p}';`;
+      const injected = /'\s*OR\s*'?1'?\s*=\s*'?1/i.test(u + " " + p) || /'\s*OR\s*1=1/i.test(u + " " + p);
+      const lines = [
+        ["c-c","# сервер склеил запрос из ввода:"],
+        ["c-k", highlightSQL(q)]
+      ];
+      if (injected){
+        lines.push(["c-c","# условие стало всегда истинным → вернулись ВСЕ строки:"]);
+        lines.push(["c-s","login=admin  role=superuser   ✓ вход выполнен"]);
+        lines.push(["c-e","# уязвимость сработала (в симуляторе)."]);
+        lines.push(["c-s","flag -> " + FLAG("or_1_equals_1")]);
+      } else {
+        lines.push(["c-c","# обычная проверка: строка не найдена"]);
+        lines.push(["c-e","✗ неверный логин или пароль"]);
+        lines.push(["c-c","# подсказка: нажми чип с payload и выполни снова"]);
+      }
+      typeOut($("#sqlOut"), lines, 16);
+    };
+    $("#payload").onclick = () => { $("#pass").value = "' OR '1'='1"; };
+    $("#login").onclick = run;
+    renderLines($("#sqlOut"), [["c-c","# введи данные и выполни запрос"]]);
+  }
+},
+{
+  id:"hash", num:"06", title:"Пароли и хеши", sub:"Почему пароли не хранят как есть", diff:"hard", dkey:"d-hard",
+  flag:"salt_your_hashes",
+  render(){
+    return `
+    <div class="card"><h3>${ICON.lock} Односторонняя функция</h3>
+      <p>Хеш превращает пароль в строку фиксированной длины, и обратно его не восстановить. Поэтому в базе хранят хеш, а не сам пароль. Но одинаковые пароли дают одинаковый хеш — и их выдаёт «радужная таблица». Спасает <b>соль</b>: случайная добавка к каждому паролю.</p>
+      <p>Ниже — учебная (не криптостойкая!) хеш-функция, чтобы увидеть принцип. Введите два одинаковых пароля — хеши совпадут. Добавьте соль — разойдутся.</p>
+    </div>
+    <div class="lab">
+      <div class="field"><label>Пароль</label><input type="text" id="pw" value="123456" class="mono" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
+      <div class="row"><label style="display:flex;gap:8px;align-items:center;color:var(--soft);font-size:13px"><input type="checkbox" id="useSalt" style="accent-color:var(--accent)"> добавить случайную соль</label></div>
+      <div class="kv">
+        <span class="k">соль</span><span class="v" id="saltV">—</span>
+        <span class="k">хеш</span><span class="v c-i" id="hashV"></span>
+      </div>
+      <div class="row"><button class="btn primary" id="hashBtn">${ICON.arrow} Посчитать</button><button class="btn ghost" id="rainbow">Сравнить с «радужной таблицей»</button></div>
+    </div>
+    <div class="term" style="margin-top:14px;display:none" id="rbTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">rainbow-table lookup</span></div><div class="term-body"><pre class="out" id="rbOut"></pre></div></div>
+    <div class="defend"><b>Защита.</b> Храните пароли только как хеш с уникальной солью и «медленным» алгоритмом — <code>bcrypt</code>, <code>scrypt</code> или <code>argon2</code>. Медленность специально мешает перебору. Это и зашито во флаг.</div>`;
+  },
+  wire(){
+    // toy non-cryptographic hash purely for illustration
+    const toy = s => { let h = 0x811c9dc5; for (const ch of s){ h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return ("00000000" + h.toString(16)).slice(-8); };
+    const COMMON = { "5d7b9adc":"123456","0b7f0e2f":"password","da39a3ee":"(пусто)" };
+    let salt = "";
+    const calc = () => {
+      salt = $("#useSalt").checked ? Math.random().toString(16).slice(2,8) : "";
+      $("#saltV").textContent = salt || "— (без соли, опасно)";
+      const h = toy(($("#pw").value) + salt);
+      $("#hashV").textContent = h;
+      return h;
+    };
+    $("#useSalt").onchange = calc; $("#pw").oninput = calc; $("#hashBtn").onclick = calc;
+    calc();
+    $("#rainbow").onclick = () => {
+      const h = calc();
+      $("#rbTerm").style.display = "block";
+      const lines = [["c-c","# ищем хеш " + h + " в готовой таблице…"]];
+      if (!salt && COMMON[h]){ lines.push(["c-e","НАЙДЕН! пароль = " + COMMON[h] + "  — хеш без соли бесполезен"]); lines.push(["c-c","# добавь соль, чтобы получить флаг:"]); }
+      else if (!salt){ lines.push(["c-n","в учебной таблице нет, но реальная таблица огромна"]); lines.push(["c-c","# всё равно добавь соль — это правильная практика:"]); }
+      else { lines.push(["c-s","НЕ НАЙДЕН — соль сделала хеш уникальным ✓"]); lines.push(["c-s","flag -> " + FLAG("salt_your_hashes")]); }
+      typeOut($("#rbOut"), lines, 18);
+    };
+  }
+},
+];
+
+/* ================= shared UI helpers ================= */
+const ICON = {
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.3 7.8 8 9 4.7-1.2 8-4.5 8-9V6l-8-3Z"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></svg>',
+  terminal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg>',
+  db:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M9 15h6M10 20h4M12 15v5"/></svg>',
+};
+function highlightSQL(q){
+  return esc(q).replace(/\b(SELECT|FROM|WHERE|AND|OR)\b/g, '<span class="c-k">$1</span>')
+    .replace(/('(?:[^']|'')*')/g, '<span class="c-s">$1</span>');
+}
+function renderLines(target, lines){
+  target.innerHTML = lines.map(([c, t]) => `<span class="ln ${c}">${/<span|&lt;|&amp;/.test(t) ? t : esc(t)}</span>`).join("");
+}
+let typer;
+function typeOut(target, lines, speed = 26){
+  clearInterval(typer);
+  if (reduce){ renderLines(target, lines); return; }
+  target.innerHTML = ""; let i = 0;
+  typer = setInterval(() => {
+    if (i >= lines.length){ clearInterval(typer); return; }
+    const [c, t] = lines[i++];
+    const span = el("span", "ln " + c);
+    span.innerHTML = /<span|&lt;|&amp;/.test(t) ? t : esc(t);
+    span.style.opacity = 0; target.appendChild(span);
+    span.animate([{opacity:0,transform:"translateY(3px)"},{opacity:1,transform:"none"}], {duration:180,fill:"forwards"});
+  }, speed);
+}
+let tt; function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(()=>t.classList.remove("on"), 2200); }
+function confetti(){
+  if (reduce) return;
+  const cols = ["#6ee7a0","#58c7e0","#f2c14e","#b495f5","#ff6b7a"];
+  for (let i=0;i<70;i++){
+    const s = el("div","spark"); s.style.background = cols[i%cols.length];
+    s.style.left = (45+Math.random()*10)+"%"; s.style.top = "34%";
+    document.body.appendChild(s);
+    const ang = Math.random()*Math.PI*2, dist = 120+Math.random()*260;
+    s.animate([{transform:"translate(0,0) rotate(0)",opacity:1},
+      {transform:`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist+180}px) rotate(${Math.random()*720}deg)`,opacity:0}],
+      {duration:900+Math.random()*700,easing:"cubic-bezier(.2,.7,.3,1)",fill:"forwards"}).finished.then(()=>s.remove());
+  }
+}
+
+/* ================= app state ================= */
+const solved = new Set(store.get("solved", []));
+const hintsOpen = new Set();
+let current = Math.min(store.get("last", 0), LESSONS.length - 1);
+
+function updateProgress(){
+  const n = solved.size, total = LESSONS.length;
+  $("#progTxt").textContent = n + "/" + total;
+  $("#barFill").style.width = (n/total*100) + "%";
+}
+function buildRail(){
+  const rail = $("#rail");
+  [...rail.querySelectorAll(".lesson")].forEach(n=>n.remove());
+  LESSONS.forEach((l, i) => {
+    const b = el("button", "lesson" + (solved.has(l.id) ? " done" : ""));
+    b.setAttribute("aria-current", i===current);
+    b.innerHTML = `<span class="ix">${solved.has(l.id) ? ICON.check : l.num}</span>
+      <span class="tx"><b>${l.title}</b><span>${l.sub}</span></span>
+      <span class="diff ${l.dkey}">${{easy:"база",med:"средне",hard:"сложно"}[l.diff]}</span>`;
+    b.onclick = () => { current = i; store.set("last", i); openLesson(); };
+    rail.appendChild(b);
+  });
+}
+function openLesson(){
+  const l = LESSONS[current];
+  buildRail();
+  const m = $("#main");
+  const done = solved.has(l.id);
+  m.innerHTML = `
+    <div class="crumbs"><span class="tag mono">модуль ${l.num}</span><span>${{easy:"база",med:"средний уровень",hard:"продвинуто"}[l.diff]}</span></div>
+    <h1 class="h1">${l.title}</h1>
+    <p class="lede">${l.sub}.</p>
+    ${done ? solvedBanner() : ""}
+    <div id="lessonBody"></div>
+    <div class="flagbox">
+      <div class="fh">${ICON.flag} Отправить флаг</div>
+      <p class="hint" style="margin:0">Выполните задание выше, найдите строку вида <code class="mono" style="background:var(--inset);padding:2px 6px;border-radius:5px">FLAG{…}</code> и вставьте её.</p>
+      <div class="flag-in"><input type="text" id="flagInput" class="mono" placeholder="FLAG{...}" value="${done ? FLAG(l.flag) : ""}" ${done?"disabled":""} autocomplete="off" spellcheck="false"><button class="btn primary" id="flagSubmit">Проверить</button></div>
+      <div class="verdict ${done?"ok":""}" id="verdict">${done?"Принято ✓":""}</div>
+      <div class="hint"><button id="hintBtn">Показать подсказку</button><div class="hint-text hide" id="hintText"></div></div>
+    </div>`;
+  $("#lessonBody").innerHTML = l.render ? l.render() : "";
+  if (l.wire) l.wire();
+
+  $("#hintBtn").onclick = () => { const h = $("#hintText"); h.classList.toggle("hide"); h.textContent = HINTS[l.id] || "Внимательно прочитайте вывод в терминале — флаг появляется после строки flag ->."; $("#hintBtn").textContent = h.classList.contains("hide") ? "Показать подсказку" : "Скрыть подсказку"; };
+  const submit = () => {
+    const val = $("#flagInput").value.trim();
+    const v = $("#verdict");
+    if (val.replace(/\s+/g,"") === FLAG(l.flag).replace(/\s+/g,"")){
+      v.className = "verdict ok"; v.textContent = "Верно! Флаг принят ✓";
+      if (!solved.has(l.id)){ solved.add(l.id); store.set("solved", [...solved]); confetti(); updateProgress(); buildRail(); }
+      $("#flagInput").disabled = true;
+      toast(solved.size === LESSONS.length ? "Все модули пройдены! 🏆" : "Модуль пройден 🎉");
+      openLesson();
+      m.scrollIntoView({block:"start", behavior: reduce?"auto":"smooth"});
+    } else {
+      v.className = "verdict no"; v.textContent = "Пока не то. Проверьте формат FLAG{...}";
+      const inp = $("#flagInput"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+    }
+  };
+  $("#flagSubmit").onclick = submit;
+  $("#flagInput").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+}
+function solvedBanner(){
+  const next = current < LESSONS.length - 1;
+  return `<div class="solved-banner">${solved.size===LESSONS.length?ICON.trophy:ICON.check}
+    <div><b>Модуль пройден.</b> ${solved.size===LESSONS.length?"Вы прошли всю программу — поздравляем!":"Можно двигаться дальше."}</div>
+    ${next?`<button class="btn primary next" id="nextBtn">Следующий модуль ${ICON.arrow}</button>`:""}</div>`;
+}
+const HINTS = {
+  intro:"Нажмите «Принимаю правило» — флаг появится в выводе зелёной строкой.",
+  http:"Флаг всегда в ответе сервера, в комментарии после строки про Server/X-Powered-By.",
+  b64:"Нажмите «Декодировать перехват» — Base64 раскодируется без ключа.",
+  caesar:"Нажмите «Перебрать все 25 ключей» и найдите строку, которая начинается с FLAG{. Это ROT 3.",
+  inspect:"Нажмите «Показать исходник кнопки» — секрет лежит прямо в переменной BYPASS.",
+  sqli:"Нажмите чип с payload (он подставит ' OR '1'='1 в пароль) и выполните запрос.",
+  hash:"Поставьте галочку «добавить соль», затем «Сравнить с радужной таблицей».",
+};
+
+/* ================= boot ================= */
+$("#themeBtn").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light":"dark");
+  const next = cur === "dark" ? "light":"dark"; document.documentElement.dataset.theme = next; store.set("theme", next);
+};
+$("#resetBtn").onclick = () => { if (solved.size===0) { toast("Прогресс уже пуст"); return; } solved.clear(); store.set("solved", []); updateProgress(); openLesson(); toast("Прогресс сброшен"); };
+document.addEventListener("click", e => { if (e.target.closest("#nextBtn")){ current = Math.min(current+1, LESSONS.length-1); store.set("last", current); openLesson(); window.scrollTo({top:0,behavior:reduce?"auto":"smooth"}); } });
+
+const savedTheme = store.get("theme", null); if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+updateProgress(); openLesson();
+})();
+</script>
+<!-- PAGE END -->
+</body>
+</html>
