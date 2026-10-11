@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: left rail of lessons + a "terminal console" workspace; dark security-ops look, lime-on-slate */
+/* Layout: left rail of tracks+lessons + a "security console" workspace; dark ops look, lime-on-slate */
 :root{
   --bg:#0a0e12; --panel:#10151b; --panel-2:#161d25; --inset:#0c1116; --line:rgba(140,170,200,.12);
   --fg:#e7edf3; --muted:#8294a6; --soft:#b4c2d0;
@@ -59,61 +59,68 @@ a{color:var(--cyan)}
 .icnbtn:hover{color:var(--fg);border-color:var(--accent)}
 .icnbtn svg{width:17px;height:17px}
 
-.wrap{display:grid;grid-template-columns:288px minmax(0,1fr);gap:0}
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:0}
 /* rail */
-.rail{border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:6px;background:var(--panel);max-height:calc(100vh - 70px);overflow:auto;position:sticky;top:70px}
-.rail h2{margin:4px 6px 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.lesson{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;text-align:left;color:var(--soft);border:1px solid transparent;transition:.18s;position:relative}
+.rail{border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:3px;background:var(--panel);max-height:calc(100vh - 70px);overflow:auto;position:sticky;top:70px}
+.rail .trk{margin:14px 8px 7px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.rail .trk:first-child{margin-top:4px}
+.rail .trk::after{content:"";flex:1;height:1px;background:var(--line)}
+.lesson{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;text-align:left;color:var(--soft);border:1px solid transparent;transition:.16s;position:relative}
 .lesson:hover{background:var(--panel-2)}
 .lesson[aria-current="true"]{background:var(--panel-2);border-color:var(--line)}
-.lesson[aria-current="true"]::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--accent)}
-.lesson .ix{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font:700 13px var(--mono);background:var(--inset);color:var(--muted);border:1px solid var(--line)}
+.lesson[aria-current="true"]::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--accent)}
+.lesson .ix{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;font:700 12px var(--mono);background:var(--inset);color:var(--muted);border:1px solid var(--line)}
 .lesson.done .ix{background:var(--accent-dim);color:var(--accent);border-color:rgba(110,231,160,.3)}
-.lesson.done .ix svg{width:15px;height:15px}
-.lesson .tx{min-width:0}
-.lesson .tx b{display:block;font-size:13.5px;font-weight:600;color:var(--fg);line-height:1.25}
-.lesson .tx span{font-size:11.5px;color:var(--muted)}
-.lesson .diff{margin-left:auto;font:700 9.5px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;padding:4px 6px;border-radius:6px;flex:none}
-.d-easy{color:var(--accent);background:rgba(110,231,160,.1)}
-.d-med{color:var(--amber);background:rgba(242,193,78,.12)}
-.d-hard{color:var(--rose);background:rgba(255,107,122,.12)}
-.railfoot{margin-top:auto;padding:12px 8px 4px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line)}
+.lesson.done .ix svg{width:14px;height:14px}
+.lesson .tx{min-width:0;flex:1}
+.lesson .tx b{display:block;font-size:13px;font-weight:600;color:var(--fg);line-height:1.25}
+.lesson .tx span{font-size:11px;color:var(--muted)}
+.lesson .kind{flex:none;color:var(--muted);opacity:.8}
+.lesson .kind svg{width:14px;height:14px;display:block}
+.railfoot{margin-top:12px;padding:12px 8px 4px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line)}
 
 /* main */
 .main{padding:26px 30px 36px;min-width:0}
-.crumbs{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap}
 .crumbs .tag{padding:3px 8px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line);font-family:var(--mono)}
+.diffpill{font:700 9.5px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;padding:4px 7px;border-radius:6px}
+.d-easy{color:var(--accent);background:rgba(110,231,160,.1)}
+.d-med{color:var(--amber);background:rgba(242,193,78,.12)}
+.d-hard{color:var(--rose);background:rgba(255,107,122,.12)}
 .h1{margin:0 0 6px;font:800 27px/1.12 var(--sans);letter-spacing:-.02em;text-wrap:balance}
 .lede{margin:0 0 20px;color:var(--soft);max-width:70ch;font-size:15px}
 .card{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px}
-.card h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
-.card h3 svg{width:15px;height:15px;color:var(--accent)}
+.card h3{margin:0 0 10px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.card h3 svg{width:15px;height:15px;color:var(--accent);flex:none}
 .card p{margin:0 0 10px;color:var(--soft)}
 .card p:last-child{margin-bottom:0}
-.card code{font-family:var(--mono);font-size:12.5px;background:var(--inset);padding:2px 6px;border-radius:5px;color:var(--cyan);border:1px solid var(--line)}
+.card ul{margin:0 0 4px;padding-left:20px;color:var(--soft)}
+.card li{margin-bottom:5px}
+.card code,.lede code{font-family:var(--mono);font-size:12.5px;background:var(--inset);padding:2px 6px;border-radius:5px;color:var(--cyan);border:1px solid var(--line)}
 .note{border-left:3px solid var(--amber);background:rgba(242,193,78,.06);padding:12px 14px;border-radius:0 10px 10px 0;margin-bottom:16px;font-size:13.5px;color:var(--soft)}
 .note b{color:var(--amber)}
 .defend{border-left:3px solid var(--cyan);background:rgba(88,199,224,.06);padding:12px 14px;border-radius:0 10px 10px 0;margin-bottom:16px;font-size:13.5px;color:var(--soft)}
 .defend b{color:var(--cyan)}
+.defend code{font-family:var(--mono);font-size:12px;background:var(--inset);padding:1px 5px;border-radius:4px;color:var(--cyan)}
 
 /* terminal workspace */
 .term{background:var(--inset);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:16px}
 .term-head{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
 .dot{width:11px;height:11px;border-radius:50%}
 .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
-.term-head .ttl{margin-left:8px;font:600 12px var(--mono);color:var(--muted)}
+.term-head .ttl{margin-left:8px;font:600 12px var(--mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .term-body{padding:16px;font-family:var(--mono);font-size:13px;color:var(--soft)}
 .term-body .out{white-space:pre-wrap;word-break:break-word;line-height:1.65;margin:0}
 .term-body .ln{display:block}
 .c-k{color:var(--violet)}.c-s{color:var(--accent)}.c-n{color:var(--amber)}.c-c{color:var(--muted)}.c-e{color:var(--rose)}.c-i{color:var(--cyan)}
 
-/* interaction widgets */
+/* widgets */
 .lab{display:flex;flex-direction:column;gap:12px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:12px;color:var(--muted);font-weight:600}
-.field textarea,.field input[type=text]{background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-family:var(--mono);font-size:13px;resize:vertical;min-height:0}
-.field textarea{min-height:70px}
-.field textarea:focus,.field input:focus{border-color:var(--accent);outline:none}
+.inp,.field textarea,.field input[type=text]{background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-family:var(--mono);font-size:13px;color:var(--fg)}
+.field textarea{min-height:70px;resize:vertical}
+.inp:focus,.field textarea:focus,.field input:focus{border-color:var(--accent);outline:none}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:11px;font-weight:700;font-size:13.5px;transition:.18s}
 .btn svg{width:16px;height:16px}
@@ -131,13 +138,40 @@ a{color:var(--cyan)}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-family:var(--mono);font-size:12.5px}
 .kv .k{color:var(--muted)}
 .kv .v{color:var(--soft);word-break:break-all}
+.meter{height:9px;border-radius:5px;background:var(--inset);overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%;width:0;transition:width .35s,background .35s}
+.panes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pane{background:var(--inset);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pane .ph{padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.pane.bad .ph{color:var(--rose)}.pane.good .ph{color:var(--accent)}
+.pane .pb{padding:12px;font-size:13px;min-height:52px;word-break:break-word}
 
-/* flag box */
-.flagbox{display:flex;flex-direction:column;gap:10px;border:1px dashed var(--line);border-radius:14px;padding:16px;background:var(--panel-2)}
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:18px}
+.q{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.q .qt{font-weight:600;margin-bottom:12px;color:var(--fg)}
+.q .qt .n{color:var(--accent);font-family:var(--mono);margin-right:8px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:11px;background:var(--inset);border:1px solid var(--line);text-align:left;color:var(--soft);transition:.15s}
+.opt:hover{border-color:var(--accent)}
+.opt .mk{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex:none;margin-top:1px;display:grid;place-items:center;transition:.15s}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-dim)}
+.opt[aria-pressed="true"] .mk{border-color:var(--accent);background:var(--accent)}
+.opt[aria-pressed="true"] .mk::after{content:"";width:7px;height:7px;border-radius:50%;background:#07140d}
+.opt.correct{border-color:var(--accent);background:rgba(110,231,160,.12)}
+.opt.wrong{border-color:var(--rose);background:rgba(255,107,122,.1)}
+.opt.correct .mk{border-color:var(--accent);background:var(--accent)}
+.opt.wrong .mk{border-color:var(--rose);background:var(--rose)}
+.opt .mk svg{width:11px;height:11px;color:#07140d}
+.why{margin-top:10px;font-size:12.5px;color:var(--soft);background:var(--inset);border-left:3px solid var(--cyan);padding:9px 12px;border-radius:0 8px 8px 0}
+.why b{color:var(--cyan)}
+
+/* flag / completion */
+.flagbox{display:flex;flex-direction:column;gap:10px;border:1px dashed var(--line);border-radius:14px;padding:16px;background:var(--panel-2);margin-top:4px}
 .flagbox .fh{display:flex;align-items:center;gap:9px;font-weight:700}
 .flagbox .fh svg{width:17px;height:17px;color:var(--accent)}
 .flag-in{display:flex;gap:10px;flex-wrap:wrap}
-.flag-in input{flex:1;min-width:200px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 14px;height:44px;font-family:var(--mono);font-size:14px;letter-spacing:.02em}
+.flag-in input{flex:1;min-width:200px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 14px;height:44px;font-family:var(--mono);font-size:14px}
 .flag-in input.shake{animation:shake .4s;border-color:var(--rose)}
 @keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
 .verdict{font-size:13px;min-height:19px;font-weight:600}
@@ -146,23 +180,23 @@ a{color:var(--cyan)}
 .solved-banner svg{width:26px;height:26px;color:var(--accent);flex:none}
 .solved-banner b{color:var(--accent)}
 .solved-banner .next{margin-left:auto}
+.solved-banner .fl{font-family:var(--mono);font-size:12px;color:var(--muted)}
 .hint{font-size:12.5px;color:var(--muted)}
 .hint button{color:var(--cyan);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 .hint-text{margin-top:8px;padding:10px 12px;background:var(--inset);border-radius:9px;border:1px solid var(--line);color:var(--soft);font-size:12.5px}
+.navline{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
 
-/* confetti */
 .spark{position:fixed;top:0;left:0;width:9px;height:9px;z-index:200;pointer-events:none;border-radius:2px}
 .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,24px);opacity:0;background:var(--fg);color:var(--bg);font-weight:700;font-size:13px;padding:11px 18px;border-radius:12px;z-index:150;transition:.35s cubic-bezier(.2,.9,.25,1);pointer-events:none;max-width:calc(100% - 32px)}
 .toast.on{transform:translate(-50%,0);opacity:1}
-
 .hide{display:none!important}
+
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr}
-  .rail{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);flex-direction:row;overflow-x:auto;gap:8px}
-  .rail h2,.railfoot{display:none}
-  .lesson{flex:0 0 auto;width:210px}
+  .rail{position:static;max-height:360px;border-right:0;border-bottom:1px solid var(--line)}
   .main{padding:20px 16px 30px}
   .progress-wrap .lbl{display:none}
+  .panes{grid-template-columns:1fr}
 }
 @media (max-width:560px){
   body{padding-inline:8px}
@@ -192,9 +226,8 @@ a{color:var(--cyan)}
       <button class="icnbtn" id="resetBtn" aria-label="Сбросить прогресс"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
     </div>
   </header>
-
   <div class="wrap">
-    <nav class="rail" id="rail" aria-label="Уроки"><h2>Траектория</h2></nav>
+    <nav class="rail" id="rail" aria-label="Уроки"></nav>
     <main class="main" id="main" aria-live="polite"></main>
   </div>
 </div>
@@ -210,300 +243,16 @@ const store = {
   get(k, d){ try { const v = localStorage.getItem("cyberacad:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v){ try { localStorage.setItem("cyberacad:" + k, JSON.stringify(v)); } catch {} }
 };
-/* ---- tiny codec helpers (used by labs) ---- */
+const esc = s => String(s).replace(/[&<>]/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[m]));
 const b64 = s => { try { return btoa(unescape(encodeURIComponent(s))); } catch { return ""; } };
-const unb64 = s => { try { return decodeURIComponent(escape(atob(s.trim()))); } catch { return null; } };
-const caesar = (s, k) => s.replace(/[a-zа-яё]/gi, c => {
-  const up = c === c.toUpperCase();
-  if (/[a-z]/i.test(c)) { const b = 97; return String.fromCharCode((c.toLowerCase().charCodeAt(0) - b + (k % 26 + 26)) % 26 + b)[up ? "toUpperCase" : "toLowerCase"](); }
-  const b = 1072, a = "ёе".includes(c.toLowerCase()) ? null : null; // keep latin focus
-  return c;
-});
-const esc = s => s.replace(/[&<>]/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[m]));
-
-/* ================= curriculum ================= */
+const unb64 = s => { try { return decodeURIComponent(escape(atob(String(s).trim()))); } catch { return null; } };
+const caesar = (s, k) => s.replace(/[a-z]/gi, c => { const b = c <= "Z" ? 65 : 97; return String.fromCharCode((c.charCodeAt(0) - b + (k % 26 + 26)) % 26 + b); });
 const FLAG = id => "FLAG{" + id + "}";
-const LESSONS = [
-{
-  id:"intro", num:"00", title:"Что такое этичный хакинг", sub:"Образ мышления и правила", diff:"easy", dkey:"d-easy",
-  flag:"i_will_only_hack_what_i_own",
-  render(ctx){
-    return `
-    <div class="card"><h3>${ICON.shield} Белый, серый, чёрный</h3>
-      <p><b>White-hat</b> (этичный хакер) ищет уязвимости <b>с разрешения владельца</b>, чтобы их закрыли. <b>Black-hat</b> атакует без спроса ради выгоды. <b>Grey-hat</b> — посередине и часто нарушает закон, даже без злого умысла.</p>
-      <p>Профессия называется <code>пентестер</code> или <code>security researcher</code>. Главный навык — не «взлом», а понимание того, как система устроена и где она доверяет данным, которым доверять нельзя.</p>
-    </div>
-    <div class="note"><b>Золотое правило.</b> Тестировать можно только то, что принадлежит вам, или на что есть письменное разрешение (scope). Атака на чужую систему без спроса — это преступление в большинстве стран. Всё в этой академии происходит в изолированной песочнице у вас в браузере.</div>
-    <div class="card"><h3>${ICON.list} Легальные полигоны для практики</h3>
-      <p>Когда захотите пойти дальше — тренируйтесь только на специально созданных площадках: Hack The Box, TryHackMe, PortSwigger Web Security Academy, OverTheWire, picoCTF, root-me. Там всё разрешено и безопасно.</p>
-    </div>
-    <div class="card"><h3>${ICON.terminal} Задание</h3>
-      <p>Чтобы получить первый флаг, подтвердите правило этичного хакера. Нажмите кнопку — она выдаст флаг, который нужно вставить ниже.</p>
-      <div class="row"><button class="btn primary" id="oath">${ICON.check} Принимаю правило</button></div>
-      <pre class="out" id="oathOut" style="margin-top:12px"></pre>
-    </div>`;
-  },
-  wire(ctx){
-    $("#oath").addEventListener("click", () => {
-      typeOut($("#oathOut"), [
-        ["c-c","# Правило этичного хакера принято."],
-        ["c-c","# Теперь вы тестируете только то, что вам разрешено."],
-        ["c-s","flag -> " + FLAG(this.flag)]
-      ]);
-    });
-  }
-},
-{
-  id:"http", num:"01", title:"Анатомия HTTP-запроса", sub:"Как браузер говорит с сервером", diff:"easy", dkey:"d-easy",
-  flag:"headers_tell_the_truth",
-  render(){
-    return `
-    <div class="card"><h3>${ICON.globe} Запрос и ответ</h3>
-      <p>Любое открытие страницы — это текстовый запрос к серверу и текстовый ответ. Пентестер первым делом смотрит именно на этот «сырой» обмен: метод, путь, заголовки, тело. В заголовках часто утекает лишнее.</p>
-    </div>
-    <div class="lab">
-      <div class="field"><label>Метод и путь</label>
-        <div class="row">
-          <div class="chipset" id="methods"></div>
-          <input type="text" id="path" value="/account?id=1" style="flex:1;min-width:160px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px" aria-label="Путь">
-        </div>
-      </div>
-      <div class="field"><label>Добавить заголовки</label><div class="chipset" id="hdrs"></div></div>
-    </div>
-    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">request & response · learn.local</span></div>
-      <div class="term-body"><pre class="out" id="httpOut"></pre></div>
-    </div>
-    <div class="defend"><b>Защита.</b> Сервер не должен отдавать заголовки вроде <code>Server: Apache/2.2.14</code> или <code>X-Powered-By: PHP/5.3</code> — по версии злоумышленник находит известные уязвимости. Эту строку и выдаёт флаг.</div>`;
-  },
-  wire(){
-    const state = { method:"GET", hdrs:new Set() };
-    const METHODS = ["GET","POST","PUT","DELETE"];
-    const HDRS = [
-      ["User-Agent","Mozilla/5.0"],["Authorization","Bearer eyJ…"],
-      ["Cookie","session=9f2a…"],["X-Powered-By","PHP/5.3.2"]
-    ];
-    const mWrap = $("#methods"), hWrap = $("#hdrs");
-    METHODS.forEach(m => { const b = el("button","chip",m); b.setAttribute("aria-pressed", m===state.method); b.onclick=()=>{state.method=m;[...mWrap.children].forEach(c=>c.setAttribute("aria-pressed",c.textContent===m));draw();}; mWrap.appendChild(b); });
-    HDRS.forEach(([k,v]) => { const b = el("button","chip",k); b.setAttribute("aria-pressed","false"); b.onclick=()=>{ state.hdrs.has(k)?state.hdrs.delete(k):state.hdrs.add(k); b.setAttribute("aria-pressed",state.hdrs.has(k)); draw(); }; hWrap.appendChild(b); });
-    $("#path").addEventListener("input", draw);
-    function draw(){
-      const path = $("#path").value || "/";
-      const lines = [];
-      lines.push(["c-k", state.method + " " + esc(path) + " HTTP/1.1"]);
-      lines.push(["c-i", "Host: learn.local"]);
-      HDRS.forEach(([k,v]) => { if (state.hdrs.has(k)) lines.push(["", esc(k) + ": " + esc(v)]); });
-      lines.push(["",""]);
-      lines.push(["c-c","— — — ответ сервера — — —"]);
-      lines.push(["c-s","HTTP/1.1 200 OK"]);
-      lines.push(["c-e","Server: nginx/1.18.0 (Ubuntu)"]);
-      lines.push(["c-e","X-Powered-By: Express 4.17.1  ← утечка версии!"]);
-      lines.push(["c-c","# совет: скрой Server и X-Powered-By, тогда флаг твой:"]);
-      lines.push(["c-s","flag -> " + FLAG("headers_tell_the_truth")]);
-      renderLines($("#httpOut"), lines);
-    }
-    draw();
-  }
-},
-{
-  id:"b64", num:"02", title:"Кодирование ≠ шифрование", sub:"Base64 туда и обратно", diff:"easy", dkey:"d-easy",
-  flag:"base64_is_not_encryption",
-  render(){
-    return `
-    <div class="card"><h3>${ICON.lock} Base64 — это не защита</h3>
-      <p>Base64 просто переводит байты в набор из 64 безопасных символов, чтобы данные прошли через текстовые каналы. Это обратимо <b>без всякого ключа</b>. Если «секрет» закодирован в Base64 — он не защищён.</p>
-    </div>
-    <div class="lab">
-      <div class="field"><label>Текст</label><textarea id="plain">Привет, мир!</textarea></div>
-      <div class="row"><button class="btn primary" id="enc">${ICON.arrow} Кодировать</button><button class="btn ghost" id="dec">Декодировать ↑</button></div>
-      <div class="field"><label>Base64</label><textarea id="code" class="mono"></textarea></div>
-    </div>
-    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">intercepted.txt — расшифруй меня</span></div>
-      <div class="term-body"><pre class="out" id="chalOut"></pre><div class="row" style="margin-top:12px"><button class="btn ghost" id="solve">Декодировать перехват</button></div></div>
-    </div>
-    <div class="defend"><b>Защита.</b> Для секретов нужно настоящее шифрование (AES, а для паролей — хеширование bcrypt/argon2). Base64 годится только для транспорта данных, не для их сокрытия.</div>`;
-  },
-  wire(){
-    const sync = () => { const t = $("#plain").value; $("#code").value = b64(t); };
-    sync();
-    $("#enc").onclick = sync;
-    $("#dec").onclick = () => { const d = unb64($("#code").value); $("#plain").value = d == null ? "⚠ не похоже на Base64" : d; };
-    const secret = b64(FLAG("base64_is_not_encryption"));
-    renderLines($("#chalOut"), [["c-c","# перехваченная строка:"],["c-n", secret]]);
-    $("#solve").onclick = () => {
-      $("#code").value = secret; $("#plain").value = unb64(secret);
-      typeOut($("#chalOut"), [["c-c","# перехваченная строка:"],["c-n",secret],["c-c","# декодировано:"],["c-s", unb64(secret)]]);
-    };
-  }
-},
-{
-  id:"caesar", num:"03", title:"Шифр Цезаря и брутфорс", sub:"Перебор 25 сдвигов", diff:"med", dkey:"d-med",
-  flag:"CAESAR_IS_WEAK",
-  render(){
-    return `
-    <div class="card"><h3>${ICON.lock} Сдвиг по алфавиту</h3>
-      <p>Классический шифр: каждую букву сдвигают на N позиций. Ключей всего 25, поэтому он ломается полным перебором за секунду. Так работает идея «атаки грубой силой» (brute force).</p>
-    </div>
-    <div class="lab">
-      <div class="field"><label>Шифртекст</label><input type="text" id="ct" value="IODJ{FDHVDU_LV_ZHDN}" class="mono" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
-      <div class="slider-row"><span style="color:var(--muted);font-size:12px">Сдвиг</span><input type="range" id="shift" min="0" max="25" value="0"><span class="val mono" id="shiftVal">ROT 0</span></div>
-      <div class="field"><label>Результат</label><div class="mono" id="single" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:11px 13px;word-break:break-all"></div></div>
-      <div class="row"><button class="btn primary" id="brute">${ICON.terminal} Перебрать все 25 ключей</button></div>
-    </div>
-    <div class="term" style="margin-top:14px;display:none" id="bruteTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">bruteforce — найди читаемую строку</span></div>
-      <div class="term-body"><pre class="out" id="bruteOut"></pre></div>
-    </div>
-    <div class="defend"><b>Защита.</b> Стойкость шифра не должна зависеть от секретности алгоритма — только от ключа, и ключей должно быть астрономически много. Поэтому используют AES-256, а не самодельные сдвиги.</div>`;
-  },
-  wire(){
-    const upd = () => {
-      const k = +$("#shift").value; $("#shiftVal").textContent = "ROT " + k;
-      $("#single").textContent = caesar($("#ct").value, -k || 0);
-    };
-    $("#shift").addEventListener("input", upd); $("#ct").addEventListener("input", upd); upd();
-    $("#brute").onclick = () => {
-      $("#bruteTerm").style.display = "block";
-      const ct = $("#ct").value, lines = [["c-c","# перебор ROT 0..25:"]];
-      for (let k = 1; k < 26; k++){
-        const dec = caesar(ct, -k);
-        const hit = /FLAG\{/.test(dec);
-        lines.push([hit ? "c-s" : "c-c", "ROT " + String(k).padStart(2,"0") + "  " + dec + (hit ? "   ← читается!" : "")]);
-      }
-      typeOut($("#bruteOut"), lines, 45);
-    };
-  }
-},
-{
-  id:"inspect", num:"04", title:"Спрятано во фронтенде", sub:"Клиенту доверять нельзя", diff:"med", dkey:"d-med",
-  flag:"never_trust_the_client",
-  render(){
-    return `
-    <div class="card"><h3>${ICON.globe} Секрет в коде страницы</h3>
-      <p>Разработчики иногда прячут проверки или «секреты» в JavaScript на стороне клиента. Но клиент — это код, который уже у пользователя в руках: его можно прочитать и изменить. Проверять по-настоящему можно только на сервере.</p>
-      <p>Ниже — имитация «защищённой» админ-кнопки. Доступ к ней прячут на фронтенде. Найдите, где лежит пропуск.</p>
-    </div>
-    <div class="lab">
-      <div class="row">
-        <button class="btn ghost" id="adminBtn">${ICON.lock} Войти в админку</button>
-        <button class="btn ghost" id="viewSrc">${ICON.terminal} Показать «исходник» кнопки</button>
-      </div>
-      <div class="term" id="srcTerm" style="display:none"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">admin-button.js — view-source</span></div>
-        <div class="term-body"><pre class="out" id="srcOut"></pre></div>
-      </div>
-    </div>
-    <div class="defend"><b>Защита.</b> Никогда не храните секреты, цены, права доступа или ключи в клиентском коде. Всё, что ушло в браузер, считается публичным. Авторизацию проверяет только сервер.</div>`;
-  },
-  wire(){
-    $("#adminBtn").onclick = () => toast("Доступ запрещён — проверка на клиенте 🙄");
-    $("#viewSrc").onclick = () => {
-      $("#srcTerm").style.display = "block";
-      typeOut($("#srcOut"), [
-        ["c-k","function openAdmin(pass){"],
-        ["c-c","  // TODO: убрать до релиза!! пропуск не должен жить тут"],
-        ["c-n","  const BYPASS = \"" + FLAG("never_trust_the_client") + "\";"],
-        ["c-k","  if (pass === BYPASS) return grantAccess();"],
-        ["c-e","  else denyAccess();"],
-        ["c-k","}"]
-      ], 20);
-    };
-  }
-},
-{
-  id:"sqli", num:"05", title:"SQL-инъекция (симуляция)", sub:"Когда ввод становится командой", diff:"hard", dkey:"d-hard",
-  flag:"or_1_equals_1",
-  render(){
-    return `
-    <div class="card"><h3>${ICON.db} Данные смешались с кодом</h3>
-      <p>Если сервер склеивает запрос к базе прямо из пользовательского ввода, ввод может «вырваться» из строки и стать частью команды. Это самая классическая веб-уязвимость. Здесь безопасный <b>симулятор</b>: никакой настоящей базы нет, вводимое вами просто подставляется в шаблон, и мы показываем, что бы произошло.</p>
-    </div>
-    <div class="lab">
-      <div class="field"><label>Логин</label><input type="text" id="user" value="admin" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
-      <div class="field"><label>Пароль</label><input type="text" id="pass" value="hunter2" class="mono" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
-      <div class="chipset"><button class="chip" id="payload">подставить payload: <span class="mono">' OR '1'='1</span></button></div>
-      <div class="row"><button class="btn primary" id="login">${ICON.arrow} Выполнить запрос</button></div>
-    </div>
-    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">vulnerable-login — симулятор</span></div>
-      <div class="term-body"><pre class="out" id="sqlOut"></pre></div>
-    </div>
-    <div class="defend"><b>Защита.</b> Используйте параметризованные запросы (prepared statements): <code>WHERE login = ?</code> с передачей значения отдельно. Тогда ввод всегда остаётся данными и никогда не становится командой. Плюс — валидация и минимальные права БД.</div>`;
-  },
-  wire(){
-    const run = () => {
-      const u = $("#user").value, p = $("#pass").value;
-      const q = `SELECT * FROM users WHERE login='${u}' AND pass='${p}';`;
-      const injected = /'\s*OR\s*'?1'?\s*=\s*'?1/i.test(u + " " + p) || /'\s*OR\s*1=1/i.test(u + " " + p);
-      const lines = [
-        ["c-c","# сервер склеил запрос из ввода:"],
-        ["c-k", highlightSQL(q)]
-      ];
-      if (injected){
-        lines.push(["c-c","# условие стало всегда истинным → вернулись ВСЕ строки:"]);
-        lines.push(["c-s","login=admin  role=superuser   ✓ вход выполнен"]);
-        lines.push(["c-e","# уязвимость сработала (в симуляторе)."]);
-        lines.push(["c-s","flag -> " + FLAG("or_1_equals_1")]);
-      } else {
-        lines.push(["c-c","# обычная проверка: строка не найдена"]);
-        lines.push(["c-e","✗ неверный логин или пароль"]);
-        lines.push(["c-c","# подсказка: нажми чип с payload и выполни снова"]);
-      }
-      typeOut($("#sqlOut"), lines, 16);
-    };
-    $("#payload").onclick = () => { $("#pass").value = "' OR '1'='1"; };
-    $("#login").onclick = run;
-    renderLines($("#sqlOut"), [["c-c","# введи данные и выполни запрос"]]);
-  }
-},
-{
-  id:"hash", num:"06", title:"Пароли и хеши", sub:"Почему пароли не хранят как есть", diff:"hard", dkey:"d-hard",
-  flag:"salt_your_hashes",
-  render(){
-    return `
-    <div class="card"><h3>${ICON.lock} Односторонняя функция</h3>
-      <p>Хеш превращает пароль в строку фиксированной длины, и обратно его не восстановить. Поэтому в базе хранят хеш, а не сам пароль. Но одинаковые пароли дают одинаковый хеш — и их выдаёт «радужная таблица». Спасает <b>соль</b>: случайная добавка к каждому паролю.</p>
-      <p>Ниже — учебная (не криптостойкая!) хеш-функция, чтобы увидеть принцип. Введите два одинаковых пароля — хеши совпадут. Добавьте соль — разойдутся.</p>
-    </div>
-    <div class="lab">
-      <div class="field"><label>Пароль</label><input type="text" id="pw" value="123456" class="mono" style="background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:40px"></div>
-      <div class="row"><label style="display:flex;gap:8px;align-items:center;color:var(--soft);font-size:13px"><input type="checkbox" id="useSalt" style="accent-color:var(--accent)"> добавить случайную соль</label></div>
-      <div class="kv">
-        <span class="k">соль</span><span class="v" id="saltV">—</span>
-        <span class="k">хеш</span><span class="v c-i" id="hashV"></span>
-      </div>
-      <div class="row"><button class="btn primary" id="hashBtn">${ICON.arrow} Посчитать</button><button class="btn ghost" id="rainbow">Сравнить с «радужной таблицей»</button></div>
-    </div>
-    <div class="term" style="margin-top:14px;display:none" id="rbTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">rainbow-table lookup</span></div><div class="term-body"><pre class="out" id="rbOut"></pre></div></div>
-    <div class="defend"><b>Защита.</b> Храните пароли только как хеш с уникальной солью и «медленным» алгоритмом — <code>bcrypt</code>, <code>scrypt</code> или <code>argon2</code>. Медленность специально мешает перебору. Это и зашито во флаг.</div>`;
-  },
-  wire(){
-    // toy non-cryptographic hash purely for illustration
-    const toy = s => { let h = 0x811c9dc5; for (const ch of s){ h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return ("00000000" + h.toString(16)).slice(-8); };
-    const COMMON = { "5d7b9adc":"123456","0b7f0e2f":"password","da39a3ee":"(пусто)" };
-    let salt = "";
-    const calc = () => {
-      salt = $("#useSalt").checked ? Math.random().toString(16).slice(2,8) : "";
-      $("#saltV").textContent = salt || "— (без соли, опасно)";
-      const h = toy(($("#pw").value) + salt);
-      $("#hashV").textContent = h;
-      return h;
-    };
-    $("#useSalt").onchange = calc; $("#pw").oninput = calc; $("#hashBtn").onclick = calc;
-    calc();
-    $("#rainbow").onclick = () => {
-      const h = calc();
-      $("#rbTerm").style.display = "block";
-      const lines = [["c-c","# ищем хеш " + h + " в готовой таблице…"]];
-      if (!salt && COMMON[h]){ lines.push(["c-e","НАЙДЕН! пароль = " + COMMON[h] + "  — хеш без соли бесполезен"]); lines.push(["c-c","# добавь соль, чтобы получить флаг:"]); }
-      else if (!salt){ lines.push(["c-n","в учебной таблице нет, но реальная таблица огромна"]); lines.push(["c-c","# всё равно добавь соль — это правильная практика:"]); }
-      else { lines.push(["c-s","НЕ НАЙДЕН — соль сделала хеш уникальным ✓"]); lines.push(["c-s","flag -> " + FLAG("salt_your_hashes")]); }
-      typeOut($("#rbOut"), lines, 18);
-    };
-  }
-},
-];
 
-/* ================= shared UI helpers ================= */
 const ICON = {
   shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.3 7.8 8 9 4.7-1.2 8-4.5 8-9V6l-8-3Z"/></svg>',
   lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8 2 2M16 7l2 2"/></svg>',
   globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></svg>',
   terminal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg>',
   db:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
@@ -512,13 +261,639 @@ const ICON = {
   arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
   trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M9 15h6M10 20h4M12 15v5"/></svg>',
+  code:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 8-5 4 5 4M15 8l5 4-5 4"/></svg>',
+  net:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4a3 3 0 0 1 3 3V14"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  bug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M12 6V4M9 7 7 5M15 7l2-2M8 11H4M20 11h-4M8 15H4M20 15h-4M9 18l-2 2M15 18l2 2"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z"/><path d="M19 17H6a2 2 0 0 0-2 2"/></svg>',
 };
+const KIND = { lab: ICON.terminal, quiz: ICON.book };
+
+/* ========================= CURRICULUM ========================= */
+const TRACKS = ["Основы", "Криптография", "Веб-уязвимости (OWASP)", "Сети и разведка", "Атаки и вредоносное ПО", "Защита (Blue Team)", "Карьера"];
+
+const LESSONS = [
+/* ---------------- ОСНОВЫ ---------------- */
+{ id:"intro", track:"Основы", title:"Что такое этичный хакинг", sub:"Образ мышления и правила", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.shield} Белый, серый, чёрный</h3>
+    <p><b>White-hat</b> (этичный хакер) ищет уязвимости <b>с разрешения владельца</b>, чтобы их закрыли. <b>Black-hat</b> атакует без спроса ради выгоды. <b>Grey-hat</b> — посередине, часто нарушает закон даже без злого умысла.</p>
+    <p>Профессия называется <code>пентестер</code> или <code>security researcher</code>. Главный навык — не «взлом», а понимание того, как система устроена и где она доверяет данным, которым доверять нельзя.</p></div>
+  <div class="note"><b>Золотое правило.</b> Тестировать можно только то, что принадлежит вам, или на что есть письменное разрешение (scope). Атака на чужую систему без спроса — преступление в большинстве стран. Всё в этой академии — изолированная песочница у вас в браузере.</div>
+  <div class="card"><h3>${ICON.list} Легальные полигоны</h3>
+    <p>Когда пойдёте дальше — тренируйтесь только на специальных площадках: Hack The Box, TryHackMe, PortSwigger Web Security Academy, OverTheWire, picoCTF, root-me. Там всё разрешено и безопасно.</p></div>`,
+  quiz:[
+    {q:"Чем white-hat отличается от black-hat?", a:["Использует другие программы","Действует только с разрешения владельца системы","Работает по ночам","Ничем, это одно и то же"], c:1, why:"Разрешение (scope) — ключевое юридическое и этическое отличие."},
+    {q:"Где можно безопасно и легально практиковаться?", a:["На любом сайте в интернете","На сайте банка, если быстро","На специальных платформах вроде TryHackMe и HTB","На сайте конкурента"], c:2, why:"Специальные полигоны созданы именно для легальной практики."},
+  ]},
+{ id:"cia", track:"Основы", title:"Триада CIA и модель угроз", sub:"Что именно мы защищаем", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.shield} Три свойства безопасности</h3>
+    <p>Безопасность — это защита трёх свойств информации (триада CIA):</p>
+    <ul>
+      <li><b>Confidentiality (конфиденциальность)</b> — данные видит только тот, кому положено. Нарушается утечкой.</li>
+      <li><b>Integrity (целостность)</b> — данные не подменили. Нарушается незаметным изменением.</li>
+      <li><b>Availability (доступность)</b> — система работает, когда нужна. Нарушается, например, DDoS-атакой.</li>
+    </ul></div>
+  <div class="card"><h3>${ICON.list} Модель угроз</h3>
+    <p>Перед защитой отвечают на 4 вопроса: что защищаем (активы), от кого (нарушитель), какие есть пути атаки (поверхность атаки) и что мы можем с этим сделать. Это и называется <code>моделированием угроз</code>.</p></div>
+  <div class="defend"><b>Практика.</b> Нельзя защитить всё одинаково. Сначала находят самые ценные активы и самые вероятные угрозы — и усиливают именно их.</div>`,
+  quiz:[
+    {q:"Злоумышленник незаметно изменил сумму в платеже. Какое свойство нарушено?", a:["Конфиденциальность","Целостность","Доступность","Аутентичность"], c:1, why:"Данные подменены — это нарушение целостности (Integrity)."},
+    {q:"Сайт «лёг» под потоком запросов и недоступен. Что нарушено?", a:["Конфиденциальность","Целостность","Доступность"], c:2, why:"Это атака на доступность (Availability), например DDoS."},
+  ]},
+{ id:"how-internet", track:"Основы", title:"Как работает интернет", sub:"IP, DNS, порты, протоколы", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.net} Адреса и имена</h3>
+    <p>У каждого устройства есть <b>IP-адрес</b> (например <code>93.184.216.34</code>). Людям удобнее имена, поэтому <b>DNS</b> переводит <code>example.com</code> в IP — как телефонная книга интернета.</p></div>
+  <div class="card"><h3>${ICON.net} Порты и протоколы</h3>
+    <p>На одном IP работает много сервисов, их различают по <b>портам</b>: <code>80</code> — HTTP, <code>443</code> — HTTPS, <code>22</code> — SSH, <code>53</code> — DNS. <b>Протокол</b> — это язык общения: TCP гарантирует доставку по порядку, UDP быстрый, но без гарантий.</p>
+    <p>Данные идут «пакетами» через множество промежуточных узлов (маршрутизаторов). Поэтому без шифрования их можно подсмотреть по дороге.</p></div>
+  <div class="defend"><b>Для атакующего и защитника.</b> Чем больше открытых портов и сервисов — тем больше «поверхность атаки». Хорошая практика — закрыть всё лишнее.</div>`,
+  quiz:[
+    {q:"Что делает DNS?", a:["Шифрует трафик","Переводит доменное имя в IP-адрес","Раздаёт пароли","Блокирует вирусы"], c:1, why:"DNS — это «телефонная книга»: имя → IP."},
+    {q:"Какой порт обычно у HTTPS?", a:["21","22","80","443"], c:3, why:"443 — стандартный порт HTTPS; 80 — незашифрованный HTTP."},
+  ]},
+{ id:"http", track:"Основы", title:"Анатомия HTTP-запроса", sub:"Как браузер говорит с сервером", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.globe} Запрос и ответ</h3>
+    <p>Любое открытие страницы — это текстовый запрос к серверу и текстовый ответ: метод, путь, заголовки, тело. Пентестер первым делом смотрит на этот «сырой» обмен — в заголовках часто утекает лишнее.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Метод и путь</label>
+        <div class="row"><div class="chipset" id="methods"></div>
+          <input type="text" id="path" class="inp" value="/account?id=1" style="flex:1;min-width:160px" aria-label="Путь"></div></div>
+      <div class="field"><label>Добавить заголовки запроса</label><div class="chipset" id="hdrs"></div></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">request & response · learn.local</span></div><div class="term-body"><pre class="out" id="httpOut"></pre></div></div>
+    <div class="defend"><b>Защита.</b> Сервер не должен отдавать <code>Server: Apache/2.2.14</code> или <code>X-Powered-By: PHP/5.3</code> — по версии ищут известные уязвимости. Скрытие этих заголовков и выдаёт флаг.</div>`; },
+    wire(){
+      const st = { method:"GET", hdrs:new Set() };
+      const METHODS = ["GET","POST","PUT","DELETE"];
+      const HDRS = [["User-Agent","Mozilla/5.0"],["Authorization","Bearer eyJ…"],["Cookie","session=9f2a…"],["X-Powered-By","PHP/5.3.2"]];
+      const mW = $("#methods"), hW = $("#hdrs");
+      METHODS.forEach(m => { const b = el("button","chip",m); b.setAttribute("aria-pressed", m===st.method); b.onclick=()=>{st.method=m;[...mW.children].forEach(c=>c.setAttribute("aria-pressed",c.textContent===m));draw();}; mW.appendChild(b); });
+      HDRS.forEach(([k])=>{ const b = el("button","chip",k); b.setAttribute("aria-pressed","false"); b.onclick=()=>{ st.hdrs.has(k)?st.hdrs.delete(k):st.hdrs.add(k); b.setAttribute("aria-pressed",st.hdrs.has(k)); draw(); }; hW.appendChild(b); });
+      $("#path").addEventListener("input", draw);
+      function draw(){
+        const lines=[["c-k", st.method+" "+esc($("#path").value||"/")+" HTTP/1.1"],["c-i","Host: learn.local"]];
+        HDRS.forEach(([k,v])=>{ if(st.hdrs.has(k)) lines.push(["", esc(k)+": "+esc(v)]); });
+        lines.push(["",""],["c-c","— — — ответ сервера — — —"],["c-s","HTTP/1.1 200 OK"],
+          ["c-e","Server: nginx/1.18.0 (Ubuntu)"],["c-e","X-Powered-By: Express 4.17.1  ← утечка версии!"],
+          ["c-c","# скрой Server и X-Powered-By — вот флаг:"],["c-s","flag -> "+FLAG("headers_tell_the_truth")]);
+        renderLines($("#httpOut"), lines);
+      }
+      draw();
+    }},
+  flag:"headers_tell_the_truth" },
+{ id:"linux", track:"Основы", title:"Командная строка Linux", sub:"Базовые команды пентестера", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.terminal} Почему Linux</h3>
+    <p>Большинство серверов и инструментов безопасности работают в Linux. Минимальный набор команд:</p>
+    <ul>
+      <li><code>ls</code> — список файлов, <code>cd</code> — перейти в папку, <code>pwd</code> — где я сейчас.</li>
+      <li><code>cat file</code> — показать файл, <code>grep слово file</code> — найти строку.</li>
+      <li><code>chmod</code> — права доступа, <code>sudo</code> — выполнить от администратора (root).</li>
+      <li><code>man команда</code> — встроенная справка.</li>
+    </ul></div>
+  <div class="card"><h3>${ICON.shield} Права и root</h3>
+    <p>В Linux всё — файлы, и у каждого есть права на чтение/запись/выполнение. <code>root</code> — всемогущий пользователь. Захват root на чужой машине (<code>privilege escalation</code>) — частая цель атаки, а для защитника — то, что нужно предотвратить.</p></div>
+  <div class="defend"><b>Практика.</b> Работайте под обычным пользователем, а не под root. Повышайте права только когда действительно нужно — принцип наименьших привилегий.</div>`,
+  quiz:[
+    {q:"Какой командой посмотреть содержимое файла?", a:["ls","cat","cd","pwd"], c:1, why:"cat выводит содержимое файла; ls показывает список файлов."},
+    {q:"Что такое root в Linux?", a:["Папка с паролями","Антивирус","Пользователь с полными правами (администратор)","Сетевой порт"], c:2, why:"root — суперпользователь; его захват — цель privilege escalation."},
+  ]},
+/* ---------------- КРИПТОГРАФИЯ ---------------- */
+{ id:"b64", track:"Криптография", title:"Кодирование ≠ шифрование", sub:"Base64 туда и обратно", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.code} Base64 — это не защита</h3>
+    <p>Base64 переводит байты в 64 безопасных символа, чтобы данные прошли через текстовые каналы. Это обратимо <b>без всякого ключа</b>. Если «секрет» просто закодирован в Base64 — он не защищён.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Текст</label><textarea id="plain">Привет, мир!</textarea></div>
+      <div class="row"><button class="btn primary" id="enc">${ICON.arrow} Кодировать</button><button class="btn ghost" id="dec">Декодировать ↑</button></div>
+      <div class="field"><label>Base64</label><textarea id="code" class="mono"></textarea></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">intercepted.txt — расшифруй меня</span></div><div class="term-body"><pre class="out" id="chalOut"></pre><div class="row" style="margin-top:12px"><button class="btn ghost" id="solve">Декодировать перехват</button></div></div></div>
+    <div class="defend"><b>Защита.</b> Для секретов нужно настоящее шифрование (AES), а для паролей — хеширование (bcrypt/argon2). Base64 годится только для транспорта данных.</div>`; },
+    wire(){
+      const sync=()=>{$("#code").value=b64($("#plain").value);}; sync();
+      $("#enc").onclick=sync;
+      $("#dec").onclick=()=>{const d=unb64($("#code").value);$("#plain").value=d==null?"⚠ не похоже на Base64":d;};
+      const secret=b64(FLAG("base64_is_not_encryption"));
+      renderLines($("#chalOut"), [["c-c","# перехваченная строка:"],["c-n",secret]]);
+      $("#solve").onclick=()=>{$("#code").value=secret;$("#plain").value=unb64(secret);
+        typeOut($("#chalOut"),[["c-c","# перехват:"],["c-n",secret],["c-c","# декодировано без ключа:"],["c-s",unb64(secret)]]);};
+    }},
+  flag:"base64_is_not_encryption" },
+{ id:"caesar", track:"Криптография", title:"Шифр Цезаря и брутфорс", sub:"Перебор 25 сдвигов", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.lock} Сдвиг по алфавиту</h3>
+    <p>Классический шифр: каждую букву сдвигают на N позиций. Ключей всего 25, поэтому он ломается полным перебором (<code>brute force</code>) за секунду.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Шифртекст</label><input type="text" id="ct" value="IODJ{FDHVDU_LV_ZHDN}" class="inp"></div>
+      <div class="slider-row"><span style="color:var(--muted);font-size:12px">Сдвиг</span><input type="range" id="shift" min="0" max="25" value="0"><span class="val mono" id="shiftVal">ROT 0</span></div>
+      <div class="field"><label>Результат</label><div class="inp mono" id="single" style="word-break:break-all"></div></div>
+      <div class="row"><button class="btn primary" id="brute">${ICON.terminal} Перебрать все 25 ключей</button></div>
+    </div>
+    <div class="term hide" style="margin-top:14px" id="bruteTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">bruteforce — найди читаемую строку</span></div><div class="term-body"><pre class="out" id="bruteOut"></pre></div></div>
+    <div class="defend"><b>Защита.</b> Стойкость шифра должна зависеть только от ключа, а не от секретности алгоритма (принцип Керкгоффса), и ключей должно быть астрономически много. Поэтому используют AES-256.</div>`; },
+    wire(){
+      const upd=()=>{const k=+$("#shift").value;$("#shiftVal").textContent="ROT "+k;$("#single").textContent=caesar($("#ct").value,-k);};
+      $("#shift").addEventListener("input",upd);$("#ct").addEventListener("input",upd);upd();
+      $("#brute").onclick=()=>{$("#bruteTerm").classList.remove("hide");const ct=$("#ct").value,lines=[["c-c","# перебор ROT 1..25:"]];
+        for(let k=1;k<26;k++){const d=caesar(ct,-k);const hit=/FLAG\{/.test(d);lines.push([hit?"c-s":"c-c","ROT "+String(k).padStart(2,"0")+"  "+d+(hit?"   ← читается!":"")]);}
+        typeOut($("#bruteOut"),lines,42);};
+    }},
+  flag:"CAESAR_IS_WEAK" },
+{ id:"symmetric", track:"Криптография", title:"Симметричное шифрование", sub:"Один ключ на обе стороны (AES)", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.key} Один общий ключ</h3>
+    <p>В симметричном шифровании один и тот же ключ и шифрует, и расшифровывает. Главный современный стандарт — <b>AES</b> (128/256 бит). Он быстрый и стойкий: перебрать ключ AES-256 невозможно за время жизни Вселенной.</p>
+    <p>Проблема одна — как передать ключ собеседнику так, чтобы его не перехватили? Это называют <b>задачей распространения ключей</b>.</p></div>
+  <div class="card"><h3>${ICON.shield} Режимы работы</h3>
+    <p>Важен не только шифр, но и режим. Режим <code>ECB</code> плох — одинаковые блоки дают одинаковый результат, и картинка «просвечивает». Используют режимы с уникальным вектором (IV): <code>GCM</code>, <code>CBC</code>. GCM вдобавок проверяет целостность.</p></div>
+  <div class="defend"><b>Практика.</b> Не изобретайте свой шифр и не используйте ECB. Берите проверенные библиотеки и AES-GCM со случайным IV для каждого сообщения.</div>`,
+  quiz:[
+    {q:"Что характерно для симметричного шифрования?", a:["Два разных ключа","Один ключ и для шифрования, и для расшифровки","Ключ не нужен","Работает только с текстом"], c:1, why:"Симметричное = один общий секретный ключ на обе стороны."},
+    {q:"Почему режим ECB небезопасен?", a:["Слишком медленный","Одинаковые блоки шифруются одинаково и выдают структуру","Требует интернет","Не поддерживает русский язык"], c:1, why:"В ECB нет IV, поэтому повторяющиеся данные видны в шифртексте."},
+  ]},
+{ id:"asymmetric", track:"Криптография", title:"Асимметричное шифрование", sub:"Публичный и приватный ключ (RSA)", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.key} Пара ключей</h3>
+    <p>Здесь два связанных ключа: <b>публичный</b> (его раздают всем) и <b>приватный</b> (хранят в тайне). Что зашифровано публичным — расшифровывается только приватным. Так решается задача передачи ключа: не нужно заранее делиться секретом.</p>
+    <p>Примеры: <b>RSA</b>, <b>ECC</b>. Асимметрия медленнее симметрии, поэтому на практике ею лишь обмениваются симметричным ключом, а дальше шифруют быстрым AES (гибридная схема — так работает HTTPS).</p></div>
+  <div class="card"><h3>${ICON.shield} Цифровая подпись</h3>
+    <p>Если наоборот — подписать приватным ключом, а проверить публичным, — получится <b>цифровая подпись</b>: доказательство, что сообщение от владельца ключа и не изменено. На этом держатся сертификаты сайтов и обновления ПО.</p></div>
+  <div class="defend"><b>Практика.</b> Приватный ключ никогда не покидает владельца и не передаётся по сети. Утечка приватного ключа = полная компрометация.</div>`,
+  quiz:[
+    {q:"Какой ключ можно свободно раздавать всем?", a:["Приватный","Публичный","Оба","Ни один"], c:1, why:"Публичный ключ открыт; приватный держат в строгой тайне."},
+    {q:"Цифровая подпись подтверждает, что…", a:["Сообщение красивое","Сообщение от владельца ключа и не изменено","Сообщение зашифровано AES","Сообщение короткое"], c:1, why:"Подпись даёт аутентичность и целостность: автор и неизменность."},
+  ]},
+{ id:"hash", track:"Криптография", title:"Пароли и хеши", sub:"Почему пароли не хранят как есть", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.lock} Односторонняя функция</h3>
+    <p>Хеш превращает данные в строку фиксированной длины, и обратно его не восстановить. В базе хранят хеш пароля, а не сам пароль. Но одинаковые пароли дают одинаковый хеш — их выдаёт «радужная таблица». Спасает <b>соль</b>: случайная добавка к каждому паролю.</p>
+    <p>Ниже — учебная (<b>не</b> криптостойкая) хеш-функция для наглядности.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Пароль</label><input type="text" id="pw" value="123456" class="inp"></div>
+      <div class="row"><label style="display:flex;gap:8px;align-items:center;color:var(--soft);font-size:13px"><input type="checkbox" id="useSalt" style="accent-color:var(--accent)"> добавить случайную соль</label></div>
+      <div class="kv"><span class="k">соль</span><span class="v" id="saltV">—</span><span class="k">хеш</span><span class="v c-i" id="hashV"></span></div>
+      <div class="row"><button class="btn primary" id="hashBtn">${ICON.arrow} Посчитать</button><button class="btn ghost" id="rainbow">Сравнить с «радужной таблицей»</button></div>
+    </div>
+    <div class="term hide" style="margin-top:14px" id="rbTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">rainbow-table lookup</span></div><div class="term-body"><pre class="out" id="rbOut"></pre></div></div>
+    <div class="defend"><b>Защита.</b> Храните пароли как хеш с уникальной солью и «медленным» алгоритмом — <code>bcrypt</code>, <code>scrypt</code>, <code>argon2</code>. Медленность специально мешает перебору.</div>`; },
+    wire(){
+      const toy=s=>{let h=0x811c9dc5;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,0x01000193)>>>0;}return("00000000"+h.toString(16)).slice(-8);};
+      const COMMON={}; COMMON[toy("123456")]="123456"; COMMON[toy("password")]="password"; COMMON[toy("qwerty")]="qwerty";
+      let salt="";
+      const calc=()=>{salt=$("#useSalt").checked?Math.random().toString(16).slice(2,8):"";$("#saltV").textContent=salt||"— (без соли, опасно)";const h=toy($("#pw").value+salt);$("#hashV").textContent=h;return h;};
+      $("#useSalt").onchange=calc;$("#pw").oninput=calc;$("#hashBtn").onclick=calc;calc();
+      $("#rainbow").onclick=()=>{const h=calc();$("#rbTerm").classList.remove("hide");const lines=[["c-c","# ищем хеш "+h+" в готовой таблице…"]];
+        if(!salt&&COMMON[h]){lines.push(["c-e","НАЙДЕН! пароль = "+COMMON[h]+"  — хеш без соли бесполезен"],["c-c","# добавь соль, чтобы получить флаг:"]);}
+        else if(!salt){lines.push(["c-n","в учебной таблице нет, но реальная таблица огромна"],["c-c","# всё равно добавь соль — это правильно:"]);}
+        else{lines.push(["c-s","НЕ НАЙДЕН — соль сделала хеш уникальным ✓"],["c-s","flag -> "+FLAG("salt_your_hashes")]);}
+        typeOut($("#rbOut"),lines,18);};
+    }},
+  flag:"salt_your_hashes" },
+{ id:"tls", track:"Криптография", title:"HTTPS и TLS", sub:"Откуда замочек в браузере", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.lock} Что даёт HTTPS</h3>
+    <p>HTTPS — это HTTP поверх <b>TLS</b>. Он обеспечивает сразу три вещи: <b>шифрование</b> (трафик не прочитать по дороге), <b>целостность</b> (не подменить) и <b>аутентификацию сервера</b> (вы говорите именно с тем сайтом).</p></div>
+  <div class="card"><h3>${ICON.key} Рукопожатие и сертификаты</h3>
+    <p>При подключении браузер и сервер договариваются о ключах (handshake): асимметрией обмениваются секретом, дальше общаются быстрым симметричным шифром. Сервер доказывает, кто он, <b>сертификатом</b>, подписанным доверенным центром (CA). Если сертификат просрочен или не тот — браузер предупреждает.</p></div>
+  <div class="defend"><b>Практика.</b> «Замочек» означает лишь шифрование канала, а не что сайт честный — фишинговые сайты тоже бывают на HTTPS. Всегда проверяйте сам домен.</div>`,
+  quiz:[
+    {q:"Что НЕ обеспечивает HTTPS сам по себе?", a:["Шифрование канала","Что владелец сайта — честный человек","Целостность данных","Проверку, что это нужный сервер"], c:1, why:"HTTPS защищает канал, но не гарантирует добросовестность владельца — фишинг бывает на HTTPS."},
+    {q:"Чем сервер доказывает свою подлинность?", a:["Паролем","Сертификатом, подписанным доверенным центром (CA)","Капчей","IP-адресом"], c:1, why:"Доверие строится на цепочке сертификатов до доверенного CA."},
+  ]},
+/* ---------------- ВЕБ-УЯЗВИМОСТИ ---------------- */
+{ id:"inspect", track:"Веб-уязвимости (OWASP)", title:"Нельзя доверять клиенту", sub:"Секреты во фронтенде", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.globe} Секрет в коде страницы</h3>
+    <p>Разработчики иногда прячут проверки или «секреты» в JavaScript на стороне клиента. Но клиент — код, который уже у пользователя в руках: его можно прочитать и изменить. По-настоящему проверять можно только на сервере.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="row"><button class="btn ghost" id="adminBtn">${ICON.lock} Войти в админку</button><button class="btn ghost" id="viewSrc">${ICON.terminal} Показать «исходник» кнопки</button></div>
+      <div class="term hide" id="srcTerm"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">admin-button.js — view-source</span></div><div class="term-body"><pre class="out" id="srcOut"></pre></div></div>
+    </div>
+    <div class="defend"><b>Защита.</b> Никогда не храните секреты, цены, права доступа или ключи в клиентском коде. Всё, что ушло в браузер, считается публичным. Авторизацию проверяет только сервер.</div>`; },
+    wire(){
+      $("#adminBtn").onclick=()=>toast("Доступ запрещён — проверка на клиенте 🙄");
+      $("#viewSrc").onclick=()=>{$("#srcTerm").classList.remove("hide");
+        typeOut($("#srcOut"),[["c-k","function openAdmin(pass){"],["c-c","  // TODO: убрать до релиза!! пропуск не должен жить тут"],
+          ["c-n","  const BYPASS = \""+FLAG("never_trust_the_client")+"\";"],["c-k","  if (pass === BYPASS) return grantAccess();"],
+          ["c-e","  else denyAccess();"],["c-k","}"]],20);};
+    }},
+  flag:"never_trust_the_client" },
+{ id:"sqli", track:"Веб-уязвимости (OWASP)", title:"SQL-инъекция (симуляция)", sub:"Когда ввод становится командой", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.db} Данные смешались с кодом</h3>
+    <p>Если сервер склеивает запрос к базе прямо из пользовательского ввода, ввод может «вырваться» из строки и стать частью команды. Это одна из самых классических веб-уязвимостей. Здесь безопасный <b>симулятор</b>: базы нет, ввод просто подставляется в шаблон, и мы показываем, что бы произошло.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Логин</label><input type="text" id="user" value="admin" class="inp"></div>
+      <div class="field"><label>Пароль</label><input type="text" id="pass" value="hunter2" class="inp"></div>
+      <div class="chipset"><button class="chip" id="payload">подставить payload: <span class="mono">' OR '1'='1</span></button></div>
+      <div class="row"><button class="btn primary" id="login">${ICON.arrow} Выполнить запрос</button></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">vulnerable-login — симулятор</span></div><div class="term-body"><pre class="out" id="sqlOut"></pre></div></div>
+    <div class="defend"><b>Защита.</b> Параметризованные запросы (prepared statements): <code>WHERE login = ?</code> с передачей значения отдельно. Тогда ввод всегда остаётся данными. Плюс валидация и минимальные права БД.</div>`; },
+    wire(){
+      const run=()=>{const u=$("#user").value,p=$("#pass").value;const q="SELECT * FROM users WHERE login='"+u+"' AND pass='"+p+"';";
+        const inj=/'\s*OR\s*'?1'?\s*=\s*'?1/i.test(u+" "+p)||/'\s*OR\s*1=1/i.test(u+" "+p);
+        const lines=[["c-c","# сервер склеил запрос из ввода:"],["c-k",highlightSQL(q)]];
+        if(inj){lines.push(["c-c","# условие стало всегда истинным → вернулись ВСЕ строки:"],["c-s","login=admin  role=superuser   ✓ вход выполнен"],["c-e","# уязвимость сработала (в симуляторе)."],["c-s","flag -> "+FLAG("or_1_equals_1")]);}
+        else{lines.push(["c-c","# обычная проверка: строка не найдена"],["c-e","✗ неверный логин или пароль"],["c-c","# подсказка: нажми чип с payload и выполни снова"]);}
+        typeOut($("#sqlOut"),lines,16);};
+      $("#payload").onclick=()=>{$("#pass").value="' OR '1'='1";};
+      $("#login").onclick=run;
+      renderLines($("#sqlOut"),[["c-c","# введи данные и выполни запрос"]]);
+    }},
+  flag:"or_1_equals_1" },
+{ id:"xss", track:"Веб-уязвимости (OWASP)", title:"XSS — межсайтовый скриптинг", sub:"Чужой JavaScript на вашей странице", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.code} Ввод, ставший кодом страницы</h3>
+    <p>Если сайт выводит пользовательский текст на страницу «как есть», злоумышленник может вставить не текст, а <code>&lt;script&gt;</code>. Тогда его код выполнится в браузере других посетителей: кража cookie/сессии, подмена страницы, действия от их имени. Это <b>XSS</b>.</p>
+    <p>Ниже безопасная демонстрация: мы <b>никогда</b> не выполняем ваш ввод, а показываем, как один и тот же комментарий выглядит на уязвимом и на защищённом сайте.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Комментарий посетителя</label><textarea id="xin">&lt;script&gt;alert(document.cookie)&lt;/script&gt;</textarea></div>
+      <div class="row"><button class="btn primary" id="xrun">${ICON.arrow} Отправить комментарий</button></div>
+      <div class="panes">
+        <div class="pane bad"><div class="ph">Уязвимый сайт (вывод как есть)</div><div class="pb mono" id="xbad"></div></div>
+        <div class="pane good"><div class="ph">Защищённый сайт (экранирование)</div><div class="pb mono" id="xgood"></div></div>
+      </div>
+    </div>
+    <div class="defend"><b>Защита.</b> Экранируйте вывод (<code>&lt;</code> → <code>&amp;lt;</code>) в нужном контексте, включите <code>Content-Security-Policy</code>, помечайте cookie флагом <code>HttpOnly</code>, чтобы их не достал скрипт. Не вставляйте пользовательский ввод через <code>innerHTML</code>.</div>`; },
+    wire(){
+      const run=()=>{const raw=$("#xin").value;const hasScript=/<\s*script/i.test(raw)||/on\w+\s*=/i.test(raw);
+        // SAFE: both panes only ever show ESCAPED text; the "vulnerable" pane just annotates what WOULD happen
+        $("#xbad").innerHTML = (hasScript?'<span class="c-e">⚠ сработал бы чужой код: '+'</span>':'')+esc(raw);
+        $("#xgood").innerHTML = '<span class="c-s">безопасно показан как текст:</span><br>'+esc(raw);
+        if(hasScript) typeOut(ensureTerm(),[["c-c","# на уязвимом сайте выполнился бы ваш скрипт."],["c-c","# на защищённом он остался текстом. флаг:"],["c-s","flag -> "+FLAG("xss_needs_output_encoding")]],16);
+      };
+      $("#xrun").onclick=run;
+      function ensureTerm(){ let t=$("#xterm"); if(!t){ const w=el("div","term"); w.id="xtermw"; w.style.marginTop="14px"; w.innerHTML='<div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">xss — что произошло</span></div><div class="term-body"><pre class="out" id="xterm"></pre></div>'; $("#xgood").closest(".lab").appendChild(w); t=$("#xterm"); } return t; }
+      run();
+    }},
+  flag:"xss_needs_output_encoding" },
+{ id:"csrf", track:"Веб-уязвимости (OWASP)", title:"CSRF — подделка запроса", sub:"Действие от вашего имени", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.globe} Браузер слишком доверчив</h3>
+    <p>Браузер автоматически прикладывает ваши cookie к каждому запросу на сайт. Если вы залогинены в банке и зашли на вредную страницу, она может тихо отправить запрос в банк от вашего имени — браузер приложит вашу сессию. Это <b>CSRF</b> (подделка межсайтового запроса).</p>
+    <p>Атака работает на «изменяющих» действиях: перевод денег, смена пароля, удаление.</p></div>
+  <div class="defend"><b>Защита.</b> <code>CSRF-токен</code> — случайное значение в форме, которого чужой сайт не знает. Плюс cookie с атрибутом <code>SameSite</code>, и проверка, что важные действия идут методом POST с проверкой источника.</div>`,
+  quiz:[
+    {q:"Почему CSRF вообще возможна?", a:["Пароли слишком простые","Браузер сам прикладывает cookie сессии к запросу","Сервер медленный","Нет антивируса"], c:1, why:"Автоматическая отправка cookie позволяет чужой странице действовать от вашего имени."},
+    {q:"Что надёжно защищает от CSRF?", a:["Длинный пароль","CSRF-токен и cookie SameSite","HTTPS сам по себе","Капча на входе"], c:1, why:"Секретный токен, которого чужой сайт не знает, + SameSite-cookie."},
+  ]},
+{ id:"idor", track:"Веб-уязвимости (OWASP)", title:"IDOR и контроль доступа", sub:"Чужие данные по чужому id", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.db} Угадал номер — получил чужое</h3>
+    <p><b>IDOR</b> (небезопасная прямая ссылка на объект) — когда доступ к данным определяется только номером в запросе, а сервер не проверяет, ваш ли это объект. Поменяли <code>id=1001</code> на <code>1002</code> — и увидели чужой заказ. Это частный случай «сломанного контроля доступа» — уязвимости №1 в OWASP Top 10.</p>
+    <p>Ниже безопасный симулятор API: ваш настоящий id — <code>1001</code>.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Запрос к API</label>
+        <div class="row"><span class="inp mono" style="flex:1;min-width:200px">GET /api/orders?user_id=<span id="uid" class="c-n">1001</span></span>
+          <button class="chip" id="minus">−1</button><button class="chip" id="plus">+1</button></div></div>
+      <div class="row"><button class="btn primary" id="go">${ICON.arrow} Отправить</button><span class="hint">ваш id: 1001</span></div>
+    </div>
+    <div class="term" style="margin-top:14px"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">broken-access — симулятор</span></div><div class="term-body"><pre class="out" id="idorOut"></pre></div></div>
+    <div class="defend"><b>Защита.</b> Сервер должен проверять право на <b>каждый</b> объект: «принадлежит ли заказ текущему пользователю?». Не полагайтесь на то, что номер «не угадают». Используйте непредсказуемые идентификаторы и серверную авторизацию.</div>`; },
+    wire(){
+      let id=1001;const MINE=1001;
+      const OWN={name:"Ваш заказ",items:"наушники, чехол",sum:"4 900 ₽"};
+      const upd=()=>{$("#uid").textContent=id;};
+      const go=()=>{const lines=[["c-k","GET /api/orders?user_id="+id]];
+        if(id===MINE){lines.push(["c-s","200 OK — "+OWN.name],["","items: "+OWN.items+"  sum: "+OWN.sum]);}
+        else{lines.push(["c-e","200 OK — ЧУЖОЙ заказ пользователя #"+id+" (сервер не проверил доступ!)"],["","items: секретный подарок  sum: 12 000 ₽"],["c-c","# так выглядит IDOR. флаг:"],["c-s","flag -> "+FLAG("check_access_server_side")]);}
+        typeOut($("#idorOut"),lines,16);};
+      $("#plus").onclick=()=>{id++;upd();};$("#minus").onclick=()=>{id--;upd();};$("#go").onclick=go;
+      renderLines($("#idorOut"),[["c-c","# измени user_id на чужой и отправь"]]);
+    }},
+  flag:"check_access_server_side" },
+{ id:"authn", track:"Веб-уязвимости (OWASP)", title:"Аутентификация и сессии", sub:"Вход, cookie, перебор", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.key} Кто вы и как сайт это помнит</h3>
+    <p><b>Аутентификация</b> — доказать, кто вы (пароль, код, ключ). <b>Авторизация</b> — что вам можно. После входа сервер выдаёт <b>сессионный токен</b> (обычно в cookie), который браузер шлёт с каждым запросом вместо пароля.</p></div>
+  <div class="card"><h3>${ICON.bug} Типичные ошибки</h3>
+    <ul>
+      <li>Нет защиты от перебора пароля (<code>brute force</code>, <code>credential stuffing</code> чужими утечками).</li>
+      <li>Токен сессии предсказуем или не сбрасывается при выходе.</li>
+      <li>Нет второго фактора (2FA) на важных аккаунтах.</li>
+    </ul></div>
+  <div class="defend"><b>Защита.</b> Ограничение попыток входа (rate limiting), блокировки, длинные случайные токены, флаги cookie <code>HttpOnly</code>+<code>Secure</code>+<code>SameSite</code>, обязательный 2FA и смена токена после логина.</div>`,
+  quiz:[
+    {q:"Чем отличается аутентификация от авторизации?", a:["Ничем","Аутентификация — кто вы; авторизация — что вам можно","Авторизация — это пароль","Аутентификация нужна только админам"], c:1, why:"Сначала доказываем личность (authn), потом проверяем права (authz)."},
+    {q:"Что мешает перебору паролей?", a:["Длинный логин","Ограничение числа попыток (rate limiting) и 2FA","Красивый дизайн","Отключить cookie"], c:1, why:"Лимит попыток + второй фактор делают перебор непрактичным."},
+  ]},
+{ id:"headers", track:"Веб-уязвимости (OWASP)", title:"Заголовки безопасности", sub:"Защита в одну строку", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.shield} Что умеют HTTP-заголовки</h3>
+    <p>Сервер может прислать заголовки, которые включают защиту прямо в браузере. Соберите «профиль безопасности» ниже и доведите оценку до 100%.</p>
+    <ul>
+      <li><code>Content-Security-Policy</code> — разрешает скрипты только из доверенных мест (главная защита от XSS).</li>
+      <li><code>Strict-Transport-Security</code> (HSTS) — только HTTPS, без отката на HTTP.</li>
+      <li><code>X-Frame-Options</code> — запрет встраивать сайт в чужой iframe (защита от кликджекинга).</li>
+      <li><code>X-Content-Type-Options: nosniff</code> — браузер не «угадывает» тип файла.</li>
+    </ul></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Включить заголовки</label><div class="chipset" id="hset"></div></div>
+      <div class="field"><label>Оценка защиты</label><div class="meter"><i id="hmeter"></i></div><div class="kv" style="margin-top:8px"><span class="k">score</span><span class="v mono" id="hscore">0%</span></div></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">response headers</span></div><div class="term-body"><pre class="out" id="hout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Практика.</b> Эти заголовки бесплатны и ставятся на уровне сервера/прокси. Начните с CSP и HSTS — они закрывают самые частые классы атак.</div>`; },
+    wire(){
+      const H=[["Content-Security-Policy","XSS"],["Strict-Transport-Security","downgrade на HTTP"],["X-Frame-Options","кликджекинг"],["X-Content-Type-Options","MIME-sniffing"]];
+      const on=new Set();const w=$("#hset");
+      H.forEach(([k])=>{const b=el("button","chip",k);b.setAttribute("aria-pressed","false");b.onclick=()=>{on.has(k)?on.delete(k):on.add(k);b.setAttribute("aria-pressed",on.has(k));draw();};w.appendChild(b);});
+      function draw(){const pct=Math.round(on.size/H.length*100);$("#hscore").textContent=pct+"%";const m=$("#hmeter");m.style.width=pct+"%";m.style.background=pct<50?"var(--rose)":pct<100?"var(--amber)":"var(--accent)";
+        const lines=[["c-s","HTTP/1.1 200 OK"]];H.forEach(([k,risk])=>{if(on.has(k))lines.push(["c-i",k+": …   ← закрывает "+risk]);else lines.push(["c-e","(нет) "+k+"   ← открыт риск: "+risk]);});
+        if(on.size===H.length)lines.push(["c-c","# все ключевые заголовки на месте. флаг:"],["c-s","flag -> "+FLAG("defense_in_the_headers")]);
+        renderLines($("#hout"),lines);}
+      draw();
+    }},
+  flag:"defense_in_the_headers" },
+{ id:"jwt", track:"Веб-уязвимости (OWASP)", title:"JWT-токены", sub:"Что внутри и чему доверять", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.key} Три части через точку</h3>
+    <p><b>JWT</b> — популярный формат токена: <code>header.payload.signature</code>. Первые две части — это просто <b>Base64</b> с данными (кто пользователь, его роль, срок). Они <b>не зашифрованы</b>, их читает кто угодно. Защищает только <b>подпись</b>: изменить payload нельзя, не зная секретного ключа сервера.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>JWT-токен</label><textarea id="jwtin" class="mono"></textarea></div>
+      <div class="row"><button class="btn primary" id="jdec">${ICON.arrow} Декодировать</button></div>
+      <div class="field"><label>Payload (читается без ключа!)</label><div class="inp mono" id="jpay" style="white-space:pre-wrap;word-break:break-all"></div></div>
+    </div>
+    <div class="defend"><b>Защита.</b> Не кладите в JWT секреты — payload публичен. Всегда проверяйте подпись и отвергайте <code>alg: none</code>. Храните токен безопасно и делайте короткий срок жизни + механизм отзыва.</div>`; },
+    wire(){
+      const payload={sub:"1001",role:"user",flag:FLAG("jwt_payload_is_readable")};
+      const tok=b64('{"alg":"HS256","typ":"JWT"}')+"."+b64(JSON.stringify(payload))+".s7gP_fakeSignature_not_verifiable";
+      $("#jwtin").value=tok;
+      $("#jdec").onclick=()=>{const parts=$("#jwtin").value.split(".");const p=unb64(parts[1]||"");
+        try{const o=JSON.parse(p);$("#jpay").textContent=JSON.stringify(o,null,2);}catch{$("#jpay").textContent=p||"⚠ не удалось декодировать";}};
+      $("#jdec").onclick();
+    }},
+  flag:"jwt_payload_is_readable" },
+{ id:"upload", track:"Веб-уязвимости (OWASP)", title:"Загрузка файлов и path traversal", sub:"Опасные файлы и ../", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.bug} Два риска при работе с файлами</h3>
+    <p><b>Опасная загрузка.</b> Если сайт принимает любые файлы и кладёт их в доступную папку, злоумышленник загрузит исполняемый скрипт и запустит его на сервере.</p>
+    <p><b>Path traversal (обход пути).</b> Если имя файла берут из запроса без проверки, строка вроде <code>../../etc/passwd</code> выведет из папки и даст доступ к системным файлам.</p></div>
+  <div class="defend"><b>Защита.</b> Белый список расширений и MIME, переименование файла в случайное имя, хранение вне веб-корня, запрет выполнения в папке загрузок. Для путей — нормализовать и запрещать <code>..</code>, работать только внутри разрешённой директории.</div>`,
+  quiz:[
+    {q:"Чем опасна строка ../../etc/passwd в имени файла?", a:["Ничем","Выводит за пределы папки к системным файлам (path traversal)","Это валидный пароль","Ускоряет загрузку"], c:1, why:"`..` поднимается вверх по дереву каталогов — классический обход пути."},
+    {q:"Как безопасно принимать загрузки?", a:["Доверять расширению из имени","Белый список типов, случайное имя, хранить вне веб-корня, запрет выполнения","Разрешить любые файлы","Проверять только размер"], c:1, why:"Комбинация мер; доверять расширению в имени нельзя — его подделывают."},
+  ]},
+{ id:"ssrf", track:"Веб-уязвимости (OWASP)", title:"SSRF — запрос от имени сервера", sub:"Сервер лезет, куда не надо", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.net} Сервер как прокси атакующего</h3>
+    <p><b>SSRF</b> (подделка запроса на стороне сервера): функция вроде «загрузить картинку по URL» заставляет сервер сходить по адресу, который задал пользователь. Злоумышленник подставляет внутренний адрес — <code>http://169.254.169.254/</code> (облачные метаданные) или <code>http://localhost:admin</code> — и сервер, находясь внутри сети, достаёт то, что снаружи закрыто.</p></div>
+  <div class="defend"><b>Защита.</b> Белый список разрешённых адресов/доменов, запрет внутренних диапазонов (localhost, 169.254.*, 10.*, 192.168.*), отдельная сеть без доступа к метаданным, проверка после разрешения DNS.</div>`,
+  quiz:[
+    {q:"В чём суть SSRF?", a:["Пользователь ломает свой браузер","Сервер по просьбе пользователя шлёт запрос на внутренний адрес","Утечка паролей из БД","Подбор пароля"], c:1, why:"Сервер становится прокси и достаёт внутренние ресурсы, закрытые снаружи."},
+    {q:"Какой адрес особенно опасен при SSRF в облаке?", a:["google.com","169.254.169.254 (метаданные облака)","example.com","127.0.0.1:443 сайта"], c:1, why:"По этому адресу облака отдают метаданные, часто с ключами доступа."},
+  ]},
+{ id:"cmdi", track:"Веб-уязвимости (OWASP)", title:"Внедрение команд ОС", sub:"Ввод уходит в системный вызов", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.terminal} Когда ввод попадает в shell</h3>
+    <p>Если сервер строит системную команду из пользовательского ввода — например <code>ping [адрес]</code> — то ввод <code>8.8.8.8; rm -rf /</code> выполнит и ping, и вторую команду. Символы <code>; | &amp;&amp; $( )</code> разделяют команды в shell. Это <b>command injection</b> — родственник SQL-инъекции, но на уровне операционной системы.</p></div>
+  <div class="defend"><b>Защита.</b> Не собирайте команды из строк. Вызывайте программы напрямую с аргументами-массивом (без оболочки), проверяйте ввод по белому списку, работайте с минимальными правами. Лучший вариант — вообще обойтись без вызова shell.</div>`,
+  quiz:[
+    {q:"Почему ввод 8.8.8.8; rm -rf / опасен в команде ping?", a:["Длинный","Точка с запятой запускает вторую команду в shell","Это неверный IP","Ничего страшного"], c:1, why:"`;` разделяет команды — выполнится и вредоносная часть."},
+    {q:"Как правильно защититься?", a:["Запретить цифры","Вызывать программу с аргументами-массивом без оболочки и проверять ввод","Добавить капчу","Увеличить таймаут"], c:1, why:"Без shell-склейки спецсимволы перестают быть управляющими."},
+  ]},
+{ id:"owasp", track:"Веб-уязвимости (OWASP)", title:"Обзор OWASP Top 10", sub:"Карта главных веб-рисков", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.list} Что это такое</h3>
+    <p><b>OWASP Top 10</b> — регулярно обновляемый список самых критичных веб-уязвимостей, стандарт де-факто. Вы уже разобрали большинство из них:</p>
+    <ul>
+      <li><b>Broken Access Control</b> — IDOR и права доступа (№1).</li>
+      <li><b>Cryptographic Failures</b> — слабое/отсутствующее шифрование.</li>
+      <li><b>Injection</b> — SQL, команды, XSS.</li>
+      <li><b>Insecure Design, Misconfiguration</b> — ошибки архитектуры и настройки.</li>
+      <li><b>Vulnerable Components</b> — старые библиотеки с известными дырами.</li>
+      <li><b>Auth Failures, SSRF</b> и другие.</li>
+    </ul></div>
+  <div class="defend"><b>Практика.</b> OWASP даёт не только список, но и «шпаргалки» (Cheat Sheets) с конкретными мерами. Это первое, что стоит открыть, проектируя защиту веб-приложения.</div>`,
+  quiz:[
+    {q:"Что такое OWASP Top 10?", a:["Список антивирусов","Рейтинг самых критичных веб-уязвимостей","Язык программирования","Набор паролей"], c:1, why:"Это признанный стандарт-ориентир по веб-рискам."},
+    {q:"Какая категория сейчас возглавляет список?", a:["Broken Access Control","Красивый дизайн","Медленный сервер","Отсутствие рекламы"], c:0, why:"Сломанный контроль доступа (как IDOR) — риск №1 последних редакций."},
+  ]},
+/* ---------------- СЕТИ И РАЗВЕДКА ---------------- */
+{ id:"recon", track:"Сети и разведка", title:"Разведка и OSINT", sub:"Первый этап любой проверки", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.eye} Собрать информацию до атаки</h3>
+    <p>Пентест начинается с разведки (<b>reconnaissance</b>). <b>Пассивная</b> — из открытых источников (<b>OSINT</b>), не трогая цель: домены, поддомены, email, утечки, сотрудники в соцсетях, записи DNS. <b>Активная</b> — уже взаимодействие с целью (сканирование), и она заметна.</p>
+    <p>Цель — понять «поверхность атаки»: сколько сервисов, какие версии, где слабые места.</p></div>
+  <div class="defend"><b>Для защитника.</b> Чем меньше вы публикуете лишнего (версии, внутренние имена, email в открытом виде), тем беднее разведка противника. Регулярно гуглите сами себя — так находят утечки.</div>`,
+  quiz:[
+    {q:"Что такое пассивная разведка (OSINT)?", a:["Взлом сервера","Сбор данных из открытых источников без контакта с целью","Отправка вируса","Перебор паролей"], c:1, why:"OSINT не трогает цель — только открытые данные, поэтому незаметен."},
+    {q:"Почему активная разведка рискованнее для атакующего?", a:["Она дороже","Она взаимодействует с целью и фиксируется в логах","Она незаконна всегда","Она медленнее интернета"], c:1, why:"Любое обращение к цели оставляет следы и может сработать как сигнал тревоги."},
+  ]},
+{ id:"portscan", track:"Сети и разведка", title:"Сканирование портов", sub:"Какие двери открыты", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.net} Что показывает скан</h3>
+    <p>Сканер (например <code>nmap</code>) проверяет порты цели и говорит, какие <b>открыты</b> (есть сервис), <b>закрыты</b> или <b>фильтруются</b> (брандмауэр молчит). По открытым портам и баннерам определяют сервисы и версии. Ниже — безопасный симулятор скана.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Цель</label><input type="text" class="inp" value="scanme.learn.local (симуляция)" disabled></div>
+      <div class="row"><button class="btn primary" id="scan">${ICON.terminal} nmap -sV цель</button></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">port-scan — симулятор</span></div><div class="term-body"><pre class="out" id="scanOut"></pre></div></div>
+    </div>
+    <div class="note"><b>Важно.</b> Сканировать можно только свои системы или с разрешения — в большинстве сетей скан фиксируется и может считаться началом атаки.</div>
+    <div class="defend"><b>Защита.</b> Закройте неиспользуемые порты, спрячьте баннеры с версиями, поставьте брандмауэр и систему обнаружения вторжений (IDS), которая заметит массовый перебор портов.</div>`; },
+    wire(){
+      const PORTS=[["22","open","OpenSSH 8.9"],["80","open","nginx 1.18"],["443","open","nginx (TLS)"],["3306","filtered","MySQL?"],["25","closed","—"],["8080","open","устаревший Jenkins 2.60 ← риск!"]];
+      $("#scan").onclick=()=>{const lines=[["c-c","# сканирование портов…"]];
+        PORTS.forEach(([p,s,v])=>{const col=s==="open"?(/риск/.test(v)?"c-e":"c-s"):s==="filtered"?"c-n":"c-c";lines.push([col,"порт "+p.padEnd(5)+s.padEnd(9)+v]);});
+        lines.push(["c-c","# найден старый сервис с известной уязвимостью. флаг:"],["c-s","flag -> "+FLAG("knock_on_every_port")]);
+        typeOut($("#scanOut"),lines,55);};
+      renderLines($("#scanOut"),[["c-c","# нажми, чтобы запустить скан (симуляция)"]]);
+    }},
+  flag:"knock_on_every_port" },
+{ id:"sniffing", track:"Сети и разведка", title:"Перехват трафика и MITM", sub:"Человек посередине", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.eye} Подслушать канал</h3>
+    <p>Данные идут через чужое оборудование (роутеры, Wi-Fi-точки). Инструменты вроде <code>Wireshark</code> показывают проходящие пакеты. Если трафик не зашифрован (обычный HTTP), в нём видны логины, cookie, сообщения.</p>
+    <p><b>MITM</b> (man-in-the-middle) — злоумышленник встаёт между вами и сервером, читает и может подменять трафик. Частый сценарий — открытый Wi-Fi.</p></div>
+  <div class="defend"><b>Защита.</b> Только HTTPS/TLS — тогда перехваченный трафик бесполезен. HSTS не даёт откатиться на HTTP. В недоверенных сетях — VPN. Избегайте открытых Wi-Fi для важных действий.</div>`,
+  quiz:[
+    {q:"Почему открытый HTTP опасен в публичном Wi-Fi?", a:["Медленно грузится","Трафик не зашифрован — логины и cookie видны перехватчику","Тратит батарею","Ничего страшного"], c:1, why:"Без шифрования любой в сети читает содержимое пакетов."},
+    {q:"Что делает атака MITM?", a:["Ускоряет сеть","Встаёт между вами и сервером, читая/подменяя трафик","Шифрует данные","Создаёт резервные копии"], c:1, why:"«Человек посередине» перехватывает и может изменять обмен."},
+  ]},
+{ id:"wifi", track:"Сети и разведка", title:"Безопасность Wi-Fi", sub:"Пароли, WPA и чужие сети", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.net} Защита беспроводной сети</h3>
+    <p>Wi-Fi вещает в эфир, поэтому шифрование обязательно. <b>WEP</b> давно сломан, <b>WPA2</b> приемлем, <b>WPA3</b> — лучший на сегодня. Слабое место WPA2 — простой пароль: его перебирают по «рукопожатию» словарём.</p>
+    <p>Отдельная угроза — <b>злой двойник</b> (evil twin): поддельная точка с тем же именем, чтобы вы подключились к атакующему.</p></div>
+  <div class="defend"><b>Практика.</b> WPA3 или WPA2 с длинной парольной фразой, отдельная гостевая сеть, смена пароля роутера по умолчанию, отключение WPS. В чужих сетях считайте канал недоверенным и используйте HTTPS/VPN.</div>`,
+  quiz:[
+    {q:"Какой стандарт шифрования Wi-Fi самый современный?", a:["WEP","WPA","WPA2","WPA3"], c:3, why:"WPA3 — актуальный; WEP давно взломан, WPA2 слабее WPA3."},
+    {q:"Что такое «злой двойник» (evil twin)?", a:["Вирус-близнец","Поддельная Wi-Fi точка с тем же именем, чтобы перехватить подключение","Второй роутер в доме","Резервный пароль"], c:1, why:"Жертва думает, что подключилась к привычной сети, а попала к атакующему."},
+  ]},
+/* ---------------- АТАКИ И ВПО ---------------- */
+{ id:"passwords", track:"Атаки и вредоносное ПО", title:"Стойкость паролей и 2FA", sub:"Длина важнее сложности", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.key} Почему пароли ломают</h3>
+    <p>Короткий пароль перебирают за секунды. Стойкость растёт от <b>длины</b> и непредсказуемости сильнее, чем от десятка спецсимволов. Длинная <b>парольная фраза</b> из случайных слов и надёжнее, и легче запоминается.</p>
+    <p>Проверьте ниже, как длина меняет оценку (это грубая учебная оценка, не точная).</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab">
+      <div class="field"><label>Пароль</label><input type="text" id="pwx" class="inp" value="qwerty"></div>
+      <div class="field"><label>Оценка стойкости</label><div class="meter"><i id="pmeter"></i></div><div class="kv" style="margin-top:8px"><span class="k">уровень</span><span class="v mono" id="plvl"></span><span class="k">совет</span><span class="v" id="ptip"></span></div></div>
+    </div>
+    <div class="defend"><b>Практика.</b> Разные пароли на каждый сайт, хранить в <b>менеджере паролей</b>, везде где можно включить <b>2FA</b> (второй фактор). Так даже украденный пароль не даёт войти.</div>`; },
+    wire(){
+      const sets=p=>{let n=0;if(/[a-z]/.test(p))n+=26;if(/[A-Z]/.test(p))n+=26;if(/[0-9]/.test(p))n+=10;if(/[^a-zA-Z0-9]/.test(p))n+=33;return n||1;};
+      const COMMON=["qwerty","123456","password","111111","admin","qwerty123"];
+      const upd=()=>{const p=$("#pwx").value;const bits=Math.round(p.length*Math.log2(sets(p)));
+        let lvl,col,tip,pct;
+        if(COMMON.includes(p.toLowerCase())){lvl="в утечках!";col="var(--rose)";tip="этот пароль есть в любом словаре";pct=8;}
+        else if(bits<40){lvl="слабый";col="var(--rose)";tip="сделайте длиннее — 12+ символов";pct=Math.min(bits,40)/40*33;}
+        else if(bits<70){lvl="средний";col="var(--amber)";tip="добавьте длины, лучше парольная фраза";pct=33+(bits-40)/30*34;}
+        else{lvl="стойкий ✓";col="var(--accent)";tip="отлично — и не забудьте 2FA";pct=67+Math.min(bits-70,40)/40*33;}
+        const m=$("#pmeter");m.style.width=Math.min(pct,100)+"%";m.style.background=col;
+        $("#plvl").textContent=lvl+"  (~"+bits+" бит)";$("#plvl").style.color=col;$("#ptip").textContent=tip;
+        if(/✓/.test(lvl)&&!revealed){revealed=true;const w=el("div","term");w.style.marginTop="14px";w.innerHTML='<div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">strength — ok</span></div><div class="term-body"><pre class="out" id="pwflag"></pre></div>';$("#ptip").closest(".lab").appendChild(w);typeOut($("#pwflag"),[["c-s","стойкий пароль! флаг:"],["c-s","flag -> "+FLAG("length_beats_complexity")]],16);}
+      };
+      let revealed=false;
+      $("#pwx").addEventListener("input",upd);upd();
+    }},
+  flag:"length_beats_complexity" },
+{ id:"phishing", track:"Атаки и вредоносное ПО", title:"Фишинг и соц. инженерия", sub:"Взлом человека, а не кода", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.eye} Самое слабое звено — человек</h3>
+    <p>Чаще всего взламывают не код, а доверие. <b>Фишинг</b> — поддельные письма и сайты, которые выманивают пароль. Признаки: срочность и угрозы, похожий, но не тот домен (<code>paypa1.com</code>), требование ввести данные по ссылке, вложения-«счета».</p>
+    <p>Ниже — тренажёр: отметьте, где фишинг. Разберите все три.</p></div>`,
+  lab:{
+    render(){ return `
+    <div class="lab" id="phish"></div>
+    <div class="defend"><b>Практика.</b> Не вводите данные по ссылкам из писем — заходите на сайт вручную. Проверяйте домен по буквам. Включите 2FA. Сомневаетесь — свяжитесь с организацией по официальному каналу.</div>`; },
+    wire(){
+      const CASES=[
+        {t:"Письмо: «Ваш аккаунт заблокирован! Срочно войдите: http://paypa1-secure.com»",phish:true,why:"Домен paypa1 (с единицей) — подделка, плюс давление срочностью."},
+        {t:"Письмо от коллеги с ожидаемым файлом отчёта, адрес внутренний и верный",phish:false,why:"Ожидаемое письмо с верного адреса — но вложения всё равно стоит проверять."},
+        {t:"SMS: «Вы выиграли приз! Введите данные карты для доставки по ссылке»",phish:true,why:"Неожиданный «приз» + запрос данных карты по ссылке — классика фишинга."},
+      ];
+      const box=$("#phish");let done=0;
+      CASES.forEach((c,i)=>{
+        const card=el("div","card");card.style.marginBottom="12px";
+        card.innerHTML='<p style="color:var(--fg)">'+esc(c.t)+'</p><div class="row"><button class="btn ghost" data-v="1">🚩 Фишинг</button><button class="btn ghost" data-v="0">✓ Безопасно</button></div><div class="why hide"></div>';
+        card.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+          const guess=b.dataset.v==="1";const ok=guess===c.phish;const w=card.querySelector(".why");
+          w.classList.remove("hide");w.innerHTML="<b>"+(ok?"Верно.":"Не совсем.")+"</b> "+esc(c.why);
+          card.querySelectorAll("button").forEach(x=>{x.disabled=true;x.style.opacity=.6;});
+          if(!card.dataset.c){card.dataset.c="1";done++;if(done===CASES.length){const t=el("div","term");t.style.marginTop="4px";t.innerHTML='<div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">phishing-drill — complete</span></div><div class="term-body"><pre class="out" id="phflag"></pre></div>';box.appendChild(t);typeOut($("#phflag"),[["c-s","разобраны все письма! флаг:"],["c-s","flag -> "+FLAG("verify_before_you_click")]],16);}}
+        });
+        box.appendChild(card);
+      });
+    }},
+  flag:"verify_before_you_click" },
+{ id:"malware", track:"Атаки и вредоносное ПО", title:"Вредоносное ПО: типы", sub:"Вирусы, трояны, шифровальщики", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.bug} Зоопарк угроз</h3>
+    <ul>
+      <li><b>Вирус</b> — внедряется в файлы и распространяется при их запуске.</li>
+      <li><b>Червь</b> — размножается сам по сети без участия человека.</li>
+      <li><b>Троян</b> — притворяется полезной программой, а внутри вредонос.</li>
+      <li><b>Ransomware</b> (шифровальщик) — шифрует файлы и требует выкуп.</li>
+      <li><b>Spyware/keylogger</b> — следит и крадёт данные, вводимые с клавиатуры.</li>
+      <li><b>Rootkit</b> — прячется глубоко в системе, скрывая присутствие.</li>
+    </ul></div>
+  <div class="defend"><b>Защита.</b> Обновления (закрывают дыры, через которые лезут черви), не запускать вложения и пиратский софт, антивирус, принцип наименьших привилегий и — против шифровальщиков — <b>офлайн-резервные копии</b>.</div>`,
+  quiz:[
+    {q:"Чем червь отличается от вируса?", a:["Ничем","Червь распространяется сам по сети без запуска файла пользователем","Червь безопасен","Вирус работает только в интернете"], c:1, why:"Червь не ждёт, пока запустят файл — размножается самостоятельно."},
+    {q:"Что делает ransomware?", a:["Ускоряет ПК","Шифрует файлы и требует выкуп","Чистит диск","Показывает рекламу"], c:1, why:"Шифровальщик вымогает деньги за расшифровку; спасают офлайн-бэкапы."},
+  ]},
+{ id:"bufferoverflow", track:"Атаки и вредоносное ПО", title:"Переполнение буфера", sub:"Как данные портят память", diff:"hard",
+  theory:`
+  <div class="card"><h3>${ICON.code} Данные вышли за границы</h3>
+    <p>Программа выделяет под данные буфер фиксированного размера. Если записать туда больше, чем влезает, лишнее затирает соседнюю память — вплоть до адреса возврата функции. Так атакующий может перенаправить выполнение на свой код. Это <b>buffer overflow</b>, классика уязвимостей в языках C/C++ без проверки границ.</p>
+    <p>Разбираем на уровне идеи — без эксплойтов. Современные системы защищены (ASLR, DEP/NX, канарейки стека), но ошибки работы с памятью всё ещё опасны.</p></div>
+  <div class="defend"><b>Защита.</b> Проверять длину ввода, использовать безопасные функции и языки с контролем памяти (Rust, Go, управляемые среды), включать защиты компилятора и ОС (ASLR, stack canaries, NX).</div>`,
+  quiz:[
+    {q:"Что происходит при переполнении буфера?", a:["Экран гаснет","Лишние данные затирают соседнюю память, вплоть до управления выполнением","Ускоряется программа","Очищается диск"], c:1, why:"Выход за границы буфера портит память и может перехватить ход выполнения."},
+    {q:"Что снижает риск таких ошибок?", a:["Больше оперативной памяти","Проверка длины и языки с контролем памяти (Rust/Go), защиты ОС","Быстрый процессор","Тёмная тема"], c:1, why:"Контроль границ в коде и защиты вроде ASLR/NX/канареек."},
+  ]},
+/* ---------------- ЗАЩИТА ---------------- */
+{ id:"defense-depth", track:"Защита (Blue Team)", title:"Эшелонированная защита", sub:"Несколько рубежей и least privilege", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.shield} Defense in depth</h3>
+    <p>Нет одной «серебряной пули». Защита строится слоями: сетевой экран → сегментация сети → проверка ввода → аутентификация и права → шифрование → мониторинг. Пробил один рубеж — упёрся в следующий.</p></div>
+  <div class="card"><h3>${ICON.key} Наименьшие привилегии</h3>
+    <p><b>Least privilege</b>: у каждого пользователя, сервиса и программы ровно столько прав, сколько нужно для работы, и не больше. Тогда взлом одного компонента не отдаёт всю систему. Родственный принцип — <b>Zero Trust</b>: не доверяй по умолчанию даже «внутренним», проверяй каждый доступ.</p></div>
+  <div class="defend"><b>Практика.</b> Отдельные учётки для задач, сервисы не под root, доступ к данным — только тем, кому нужно. Регулярно убирайте лишние права («права имеют свойство накапливаться»).</div>`,
+  quiz:[
+    {q:"В чём идея defense in depth?", a:["Один очень сильный пароль","Несколько независимых слоёв защиты","Самый дорогой антивирус","Спрятать сервер"], c:1, why:"Многослойность: пробитие одного рубежа не означает полный доступ."},
+    {q:"Что требует принцип наименьших привилегий?", a:["Всем дать права админа для удобства","Давать минимум прав, нужных для работы","Отключить пароли","Открыть все порты"], c:1, why:"Минимум прав ограничивает ущерб при компрометации компонента."},
+  ]},
+{ id:"logging", track:"Защита (Blue Team)", title:"Логи, мониторинг, SIEM", sub:"Увидеть атаку вовремя", diff:"med",
+  theory:`
+  <div class="card"><h3>${ICON.eye} Что не логируется — то невидимо</h3>
+    <p>Защита — это не только «не пустить», но и «заметить». Логи фиксируют входы, ошибки, подозрительные запросы. <b>SIEM</b> собирает логи со всех систем, коррелирует события и поднимает тревогу: 1000 неудачных входов за минуту — вероятный брутфорс.</p>
+    <p>Важна и реакция: план действий при инциденте (<b>incident response</b>), чтобы не растеряться в момент атаки.</p></div>
+  <div class="defend"><b>Практика.</b> Логируйте ключевые события, храните логи отдельно (чтобы атакующий не стёр), настройте оповещения на аномалии, регулярно их просматривайте. Логи без просмотра бесполезны.</div>`,
+  quiz:[
+    {q:"Зачем нужен мониторинг и логи?", a:["Для красоты","Чтобы вовремя заметить атаку и разобрать инцидент","Чтобы замедлить сервер","Вместо паролей"], c:1, why:"Обнаружение и расследование не менее важны, чем предотвращение."},
+    {q:"Почему логи хранят отдельно от системы?", a:["Экономия места","Чтобы атакующий не стёр следы на взломанной машине","Так быстрее","Требование дизайна"], c:1, why:"Отдельное защищённое хранилище сохраняет улики после взлома."},
+  ]},
+{ id:"backups", track:"Защита (Blue Team)", title:"Резервные копии", sub:"Последний рубеж против потери", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.db} Правило 3-2-1</h3>
+    <p>Бэкап — защита от шифровальщиков, сбоев и ошибок. Правило <b>3-2-1</b>: <b>3</b> копии данных, на <b>2</b> разных носителях, <b>1</b> — вне площадки (офлайн или в другом месте). Офлайн-копию шифровальщик не достанет.</p></div>
+  <div class="card"><h3>${ICON.shield} Бэкап, который не проверяли, — не бэкап</h3>
+    <p>Главная ошибка — делать копии и ни разу не пробовать восстановиться. Регулярно проверяйте восстановление и шифруйте бэкапы, ведь они содержат все те же данные.</p></div>
+  <div class="defend"><b>Практика.</b> Автоматические регулярные бэкапы, одна копия офлайн/неизменяемая (immutable), шифрование копий и тестовое восстановление по расписанию.</div>`,
+  quiz:[
+    {q:"Что означает правило 3-2-1?", a:["3 пароля, 2 админа, 1 сервер","3 копии данных, 2 носителя, 1 копия вне площадки","3 попытки входа","Ничего"], c:1, why:"Три копии на двух типах носителей, одна — офлайн/в другом месте."},
+    {q:"Почему важно тестировать восстановление?", a:["Для отчёта","Непроверенный бэкап может не восстановиться в нужный момент","Чтобы занять время","Это необязательно"], c:1, why:"Бэкап ценен только если из него реально можно восстановиться."},
+  ]},
+/* ---------------- КАРЬЕРА ---------------- */
+{ id:"career", track:"Карьера", title:"Путь пентестера", sub:"Сертификаты, площадки, развитие", diff:"easy",
+  theory:`
+  <div class="card"><h3>${ICON.trophy} С чего начать и куда расти</h3>
+    <p>Фундамент: сети (TCP/IP, DNS, HTTP), Linux, немного программирования (Python/Bash), как устроены веб-приложения. Дальше — практика на легальных полигонах и разбор чужих отчётов (<b>write-ups</b>).</p></div>
+  <div class="card"><h3>${ICON.book} Ориентиры по сертификатам</h3>
+    <ul>
+      <li><b>CompTIA Security+</b> — база по безопасности для старта.</li>
+      <li><b>eJPT</b> — практичный вход в пентест.</li>
+      <li><b>OSCP</b> — уважаемая практическая сертификация (реальный взлом лабораторий с отчётом).</li>
+      <li><b>CEH</b> — более теоретическая, известна HR-ам.</li>
+    </ul>
+    <p>Сертификат — не самоцель, а структура обучения. Работодателю важнее практические навыки, отчёты и участие в <b>CTF</b> и <b>bug bounty</b> (легальный поиск уязвимостей за вознаграждение на платформах вроде HackerOne).</p></div>
+  <div class="defend"><b>Главное.</b> Этика и закон — часть профессии. Репутация строится годами и рушится одним незаконным действием. Всегда работайте в рамках разрешения.</div>`,
+  quiz:[
+    {q:"Что такое bug bounty?", a:["Соревнование по бегу","Легальный поиск уязвимостей за вознаграждение по правилам программы","Вид вируса","Сертификат"], c:1, why:"Компании платят за найденные уязвимости — легально и по чётким правилам (scope)."},
+    {q:"Какая сертификация известна как практическая (взлом лабораторий с отчётом)?", a:["CEH","OSCP","Security+","ECDL"], c:1, why:"OSCP требует реально взломать машины и написать отчёт — ценится за практику."},
+  ]},
+];
+
+/* every lesson has a flag; quiz lessons get an auto-generated one */
+LESSONS.forEach(l => { if (!l.flag) l.flag = l.id.replace(/-/g, "_") + "_mastered"; });
+
+/* ========================= ENGINE ========================= */
 function highlightSQL(q){
-  return esc(q).replace(/\b(SELECT|FROM|WHERE|AND|OR)\b/g, '<span class="c-k">$1</span>')
-    .replace(/('(?:[^']|'')*')/g, '<span class="c-s">$1</span>');
+  return esc(q).replace(/\b(SELECT|FROM|WHERE|AND|OR)\b/g,'<span class="c-k">$1</span>').replace(/('(?:[^']|'')*')/g,'<span class="c-s">$1</span>');
 }
 function renderLines(target, lines){
-  target.innerHTML = lines.map(([c, t]) => `<span class="ln ${c}">${/<span|&lt;|&amp;/.test(t) ? t : esc(t)}</span>`).join("");
+  target.innerHTML = lines.map(([c,t]) => '<span class="ln '+c+'">'+(/<span|&lt;|&amp;/.test(t)?t:esc(t))+'</span>').join("");
 }
 let typer;
 function typeOut(target, lines, speed = 26){
@@ -527,32 +902,25 @@ function typeOut(target, lines, speed = 26){
   target.innerHTML = ""; let i = 0;
   typer = setInterval(() => {
     if (i >= lines.length){ clearInterval(typer); return; }
-    const [c, t] = lines[i++];
-    const span = el("span", "ln " + c);
-    span.innerHTML = /<span|&lt;|&amp;/.test(t) ? t : esc(t);
-    span.style.opacity = 0; target.appendChild(span);
-    span.animate([{opacity:0,transform:"translateY(3px)"},{opacity:1,transform:"none"}], {duration:180,fill:"forwards"});
+    const [c,t] = lines[i++]; const span = el("span","ln "+c);
+    span.innerHTML = /<span|&lt;|&amp;/.test(t)?t:esc(t);
+    target.appendChild(span);
+    span.animate([{opacity:0,transform:"translateY(3px)"},{opacity:1,transform:"none"}],{duration:170,fill:"forwards"});
   }, speed);
 }
-let tt; function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(()=>t.classList.remove("on"), 2200); }
+let tt; function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("on"),2200); }
 function confetti(){
   if (reduce) return;
-  const cols = ["#6ee7a0","#58c7e0","#f2c14e","#b495f5","#ff6b7a"];
-  for (let i=0;i<70;i++){
-    const s = el("div","spark"); s.style.background = cols[i%cols.length];
-    s.style.left = (45+Math.random()*10)+"%"; s.style.top = "34%";
-    document.body.appendChild(s);
-    const ang = Math.random()*Math.PI*2, dist = 120+Math.random()*260;
-    s.animate([{transform:"translate(0,0) rotate(0)",opacity:1},
-      {transform:`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist+180}px) rotate(${Math.random()*720}deg)`,opacity:0}],
-      {duration:900+Math.random()*700,easing:"cubic-bezier(.2,.7,.3,1)",fill:"forwards"}).finished.then(()=>s.remove());
-  }
+  const cols=["#6ee7a0","#58c7e0","#f2c14e","#b495f5","#ff6b7a"];
+  for(let i=0;i<70;i++){const s=el("div","spark");s.style.background=cols[i%cols.length];s.style.left=(45+Math.random()*10)+"%";s.style.top="34%";document.body.appendChild(s);
+    const ang=Math.random()*Math.PI*2,dist=120+Math.random()*260;
+    s.animate([{transform:"translate(0,0) rotate(0)",opacity:1},{transform:"translate("+Math.cos(ang)*dist+"px,"+(Math.sin(ang)*dist+180)+"px) rotate("+Math.random()*720+"deg)",opacity:0}],{duration:900+Math.random()*700,easing:"cubic-bezier(.2,.7,.3,1)",fill:"forwards"}).finished.then(()=>s.remove());}
 }
 
-/* ================= app state ================= */
 const solved = new Set(store.get("solved", []));
-const hintsOpen = new Set();
 let current = Math.min(store.get("last", 0), LESSONS.length - 1);
+const DIFF = { easy:"база", med:"средне", hard:"сложно" };
+const DIFFLONG = { easy:"базовый уровень", med:"средний уровень", hard:"продвинуто" };
 
 function updateProgress(){
   const n = solved.size, total = LESSONS.length;
@@ -560,81 +928,151 @@ function updateProgress(){
   $("#barFill").style.width = (n/total*100) + "%";
 }
 function buildRail(){
-  const rail = $("#rail");
-  [...rail.querySelectorAll(".lesson")].forEach(n=>n.remove());
+  const rail = $("#rail"); rail.innerHTML = "";
+  let lastTrack = null;
   LESSONS.forEach((l, i) => {
-    const b = el("button", "lesson" + (solved.has(l.id) ? " done" : ""));
+    if (l.track !== lastTrack){ lastTrack = l.track; rail.appendChild(el("div","trk",esc(l.track))); }
+    const b = el("button","lesson"+(solved.has(l.id)?" done":""));
     b.setAttribute("aria-current", i===current);
-    b.innerHTML = `<span class="ix">${solved.has(l.id) ? ICON.check : l.num}</span>
-      <span class="tx"><b>${l.title}</b><span>${l.sub}</span></span>
-      <span class="diff ${l.dkey}">${{easy:"база",med:"средне",hard:"сложно"}[l.diff]}</span>`;
+    b.innerHTML = '<span class="ix">'+(solved.has(l.id)?ICON.check:String(i).padStart(2,"0"))+'</span>'
+      + '<span class="tx"><b>'+esc(l.title)+'</b><span>'+esc(l.sub)+'</span></span>'
+      + '<span class="kind" title="'+(l.lab?"интерактив":"тест")+'">'+(l.lab?KIND.lab:KIND.quiz)+'</span>';
     b.onclick = () => { current = i; store.set("last", i); openLesson(); };
     rail.appendChild(b);
   });
+  rail.appendChild(el("div","railfoot","Всего уроков: "+LESSONS.length+". Прогресс сохраняется в этом браузере."));
 }
+function markSolved(l){
+  if (solved.has(l.id)) return false;
+  solved.add(l.id); store.set("solved", [...solved]); confetti(); updateProgress(); buildRail();
+  toast(solved.size === LESSONS.length ? "Все "+LESSONS.length+" уроков пройдены! 🏆" : "Урок пройден 🎉");
+  return true;
+}
+function solvedBanner(l){
+  const next = current < LESSONS.length - 1;
+  return '<div class="solved-banner">'+(solved.size===LESSONS.length?ICON.trophy:ICON.check)
+    + '<div><b>Урок пройден.</b> <span class="fl">'+FLAG(l.flag)+'</span></div>'
+    + (next?'<button class="btn primary next" id="nextBtn">Дальше '+ICON.arrow+'</button>':'') + '</div>';
+}
+function navLine(){
+  const prev = current>0, next = current<LESSONS.length-1;
+  return '<div class="navline">'
+    + (prev?'<button class="btn ghost" id="prevBtn">← '+esc(LESSONS[current-1].title)+'</button>':'<span></span>')
+    + (next?'<button class="btn ghost" id="nextBtn2">'+esc(LESSONS[current+1].title)+' →</button>':'<span></span>')
+    + '</div>';
+}
+
 function openLesson(){
   const l = LESSONS[current];
   buildRail();
   const m = $("#main");
   const done = solved.has(l.id);
-  m.innerHTML = `
-    <div class="crumbs"><span class="tag mono">модуль ${l.num}</span><span>${{easy:"база",med:"средний уровень",hard:"продвинуто"}[l.diff]}</span></div>
-    <h1 class="h1">${l.title}</h1>
-    <p class="lede">${l.sub}.</p>
-    ${done ? solvedBanner() : ""}
-    <div id="lessonBody"></div>
-    <div class="flagbox">
-      <div class="fh">${ICON.flag} Отправить флаг</div>
-      <p class="hint" style="margin:0">Выполните задание выше, найдите строку вида <code class="mono" style="background:var(--inset);padding:2px 6px;border-radius:5px">FLAG{…}</code> и вставьте её.</p>
-      <div class="flag-in"><input type="text" id="flagInput" class="mono" placeholder="FLAG{...}" value="${done ? FLAG(l.flag) : ""}" ${done?"disabled":""} autocomplete="off" spellcheck="false"><button class="btn primary" id="flagSubmit">Проверить</button></div>
-      <div class="verdict ${done?"ok":""}" id="verdict">${done?"Принято ✓":""}</div>
-      <div class="hint"><button id="hintBtn">Показать подсказку</button><div class="hint-text hide" id="hintText"></div></div>
-    </div>`;
-  $("#lessonBody").innerHTML = l.render ? l.render() : "";
-  if (l.wire) l.wire();
+  m.innerHTML =
+    '<div class="crumbs"><span class="tag mono">'+String(current).padStart(2,"0")+'</span><span>'+esc(l.track)+'</span>'
+      + '<span class="diffpill d-'+(l.diff==="med"?"med":l.diff==="hard"?"hard":"easy")+'">'+DIFF[l.diff]+'</span>'
+      + '<span style="color:var(--muted)">'+DIFFLONG[l.diff]+'</span></div>'
+    + '<h1 class="h1">'+esc(l.title)+'</h1><p class="lede">'+esc(l.sub)+'.</p>'
+    + (done?solvedBanner(l):'')
+    + l.theory
+    + '<div id="interactive"></div>'
+    + navLine();
 
-  $("#hintBtn").onclick = () => { const h = $("#hintText"); h.classList.toggle("hide"); h.textContent = HINTS[l.id] || "Внимательно прочитайте вывод в терминале — флаг появляется после строки flag ->."; $("#hintBtn").textContent = h.classList.contains("hide") ? "Показать подсказку" : "Скрыть подсказку"; };
+  const slot = $("#interactive");
+  if (l.lab){ renderLab(l, slot, done); }
+  else { renderQuiz(l, slot, done); }
+
+  // nav buttons
+  const goPrev = () => { current=Math.max(0,current-1); store.set("last",current); openLesson(); window.scrollTo({top:0,behavior:reduce?"auto":"smooth"}); };
+  const goNext = () => { current=Math.min(LESSONS.length-1,current+1); store.set("last",current); openLesson(); window.scrollTo({top:0,behavior:reduce?"auto":"smooth"}); };
+  const pb=$("#prevBtn"); if(pb) pb.onclick=goPrev;
+  const nb=$("#nextBtn2"); if(nb) nb.onclick=goNext;
+  const nbTop=$("#nextBtn"); if(nbTop) nbTop.onclick=goNext;
+}
+
+function renderLab(l, slot, done){
+  slot.innerHTML = '<div class="card"><h3>'+ICON.terminal+' Лаборатория</h3><p>Выполните задание — в выводе появится строка '
+    + '<code>FLAG{…}</code>. Вставьте её в поле ниже.</p></div>'
+    + l.lab.render()
+    + '<div class="flagbox"><div class="fh">'+ICON.flag+' Отправить флаг</div>'
+    + '<div class="flag-in"><input type="text" id="flagInput" class="mono" placeholder="FLAG{...}" value="'+(done?FLAG(l.flag):"")+'" '+(done?"disabled":"")+' autocomplete="off" spellcheck="false"><button class="btn primary" id="flagSubmit">Проверить</button></div>'
+    + '<div class="verdict '+(done?"ok":"")+'" id="verdict">'+(done?"Принято ✓":"")+'</div>'
+    + '<div class="hint"><button id="hintBtn">Показать подсказку</button><div class="hint-text hide" id="hintText"></div></div></div>';
+  try { l.lab.wire(); } catch(e){ /* keep page alive */ }
+  $("#hintBtn").onclick = () => { const h=$("#hintText"); h.classList.toggle("hide"); h.textContent = HINTS[l.id]||"Внимательно читайте вывод в терминале — флаг идёт после строки flag ->."; $("#hintBtn").textContent = h.classList.contains("hide")?"Показать подсказку":"Скрыть подсказку"; };
   const submit = () => {
-    const val = $("#flagInput").value.trim();
-    const v = $("#verdict");
+    const v=$("#verdict"), val=$("#flagInput").value.trim();
     if (val.replace(/\s+/g,"") === FLAG(l.flag).replace(/\s+/g,"")){
-      v.className = "verdict ok"; v.textContent = "Верно! Флаг принят ✓";
-      if (!solved.has(l.id)){ solved.add(l.id); store.set("solved", [...solved]); confetti(); updateProgress(); buildRail(); }
-      $("#flagInput").disabled = true;
-      toast(solved.size === LESSONS.length ? "Все модули пройдены! 🏆" : "Модуль пройден 🎉");
-      openLesson();
-      m.scrollIntoView({block:"start", behavior: reduce?"auto":"smooth"});
-    } else {
-      v.className = "verdict no"; v.textContent = "Пока не то. Проверьте формат FLAG{...}";
-      const inp = $("#flagInput"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
-    }
+      v.className="verdict ok"; v.textContent="Верно! Флаг принят ✓"; $("#flagInput").disabled=true;
+      markSolved(l); openLesson(); $("#main").scrollIntoView({block:"start",behavior:reduce?"auto":"smooth"});
+    } else { v.className="verdict no"; v.textContent="Пока не то. Проверьте формат FLAG{...}";
+      const inp=$("#flagInput"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
   };
   $("#flagSubmit").onclick = submit;
-  $("#flagInput").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  $("#flagInput").addEventListener("keydown", e => { if(e.key==="Enter") submit(); });
 }
-function solvedBanner(){
-  const next = current < LESSONS.length - 1;
-  return `<div class="solved-banner">${solved.size===LESSONS.length?ICON.trophy:ICON.check}
-    <div><b>Модуль пройден.</b> ${solved.size===LESSONS.length?"Вы прошли всю программу — поздравляем!":"Можно двигаться дальше."}</div>
-    ${next?`<button class="btn primary next" id="nextBtn">Следующий модуль ${ICON.arrow}</button>`:""}</div>`;
+
+function renderQuiz(l, slot, done){
+  const picks = {};
+  slot.innerHTML = '<div class="card"><h3>'+ICON.book+' Проверка знаний</h3><p>Ответьте на вопросы, чтобы закрыть урок. Можно пробовать, пока не выйдет.</p></div>'
+    + '<div class="quiz" id="quiz">'
+    + l.quiz.map((q,qi) =>
+        '<div class="q" data-qi="'+qi+'"><div class="qt"><span class="n">'+(qi+1)+'</span>'+esc(q.q)+'</div>'
+        + '<div class="opts">'
+        + q.a.map((opt,oi)=>'<button class="opt'+(done&&oi===q.c?" correct":"")+'" data-oi="'+oi+'" aria-pressed="'+(done&&oi===q.c?"true":"false")+'"><span class="mk">'+(done&&oi===q.c?ICON.check:"")+'</span><span>'+esc(opt)+'</span></button>').join("")
+        + '</div>'+(done?'<div class="why"><b>Почему:</b> '+esc(q.why)+'</div>':'')+'</div>'
+      ).join("")
+    + '</div>'
+    + '<div class="flagbox" style="margin-top:16px"><div class="row"><button class="btn primary" id="checkQuiz" '+(done?"disabled":"")+'>'+ICON.check+' Проверить ответы</button><span class="verdict '+(done?"ok":"")+'" id="qverdict">'+(done?"Урок пройден ✓ · "+FLAG(l.flag):"")+'</span></div></div>';
+
+  if (done) return;
+  slot.querySelectorAll(".q").forEach(qEl => {
+    const qi = +qEl.dataset.qi;
+    qEl.querySelectorAll(".opt").forEach(opt => opt.onclick = () => {
+      picks[qi] = +opt.dataset.oi;
+      qEl.querySelectorAll(".opt").forEach(o => { o.setAttribute("aria-pressed", o===opt); o.querySelector(".mk").innerHTML = ""; });
+    });
+  });
+  $("#checkQuiz").onclick = () => {
+    const v = $("#qverdict");
+    if (Object.keys(picks).length < l.quiz.length){ v.className="verdict no"; v.textContent="Ответьте на все вопросы"; return; }
+    let allRight = true;
+    slot.querySelectorAll(".q").forEach(qEl => {
+      const qi=+qEl.dataset.qi, correct=l.quiz[qi].c, chosen=picks[qi];
+      qEl.querySelectorAll(".opt").forEach(o => {
+        const oi=+o.dataset.oi; o.classList.remove("correct","wrong");
+        if (oi===correct){ o.classList.add("correct"); o.querySelector(".mk").innerHTML=ICON.check; }
+        else if (oi===chosen){ o.classList.add("wrong"); }
+      });
+      if (chosen!==correct) allRight=false;
+      if (!qEl.querySelector(".why")){ const w=el("div","why","<b>Почему:</b> "+esc(l.quiz[qi].why)); qEl.appendChild(w); }
+    });
+    if (allRight){ v.className="verdict ok"; v.textContent="Всё верно! Урок пройден ✓"; markSolved(l); openLesson(); $("#main").scrollIntoView({block:"start",behavior:reduce?"auto":"smooth"}); }
+    else { v.className="verdict no"; v.textContent="Есть ошибки — исправьте выделенные и проверьте снова"; }
+  };
 }
+
 const HINTS = {
-  intro:"Нажмите «Принимаю правило» — флаг появится в выводе зелёной строкой.",
-  http:"Флаг всегда в ответе сервера, в комментарии после строки про Server/X-Powered-By.",
+  http:"Флаг всегда в ответе сервера — в комментарии после строк Server/X-Powered-By.",
   b64:"Нажмите «Декодировать перехват» — Base64 раскодируется без ключа.",
-  caesar:"Нажмите «Перебрать все 25 ключей» и найдите строку, которая начинается с FLAG{. Это ROT 3.",
-  inspect:"Нажмите «Показать исходник кнопки» — секрет лежит прямо в переменной BYPASS.",
-  sqli:"Нажмите чип с payload (он подставит ' OR '1'='1 в пароль) и выполните запрос.",
+  caesar:"Нажмите «Перебрать все 25 ключей» и найдите строку, начинающуюся с FLAG{. Это ROT 3.",
   hash:"Поставьте галочку «добавить соль», затем «Сравнить с радужной таблицей».",
+  inspect:"Нажмите «Показать исходник кнопки» — секрет лежит в переменной BYPASS.",
+  sqli:"Нажмите чип с payload (он подставит ' OR '1'='1 в пароль) и выполните запрос.",
+  xss:"В поле уже есть <\/script>-пример — просто отправьте комментарий.",
+  idor:"Кнопкой +1 смените user_id на чужой (не 1001) и отправьте.",
+  headers:"Включите все четыре заголовка — оценка дойдёт до 100%.",
+  jwt:"Нажмите «Декодировать» — payload JWT читается без ключа, флаг прямо в нём.",
+  portscan:"Запустите скан — флаг появится в конце вывода.",
+  passwords:"Введите длинную парольную фразу (12+ символов), пока уровень не станет «стойкий».",
+  phishing:"Отметьте все три письма (где фишинг, где нет) — разбор откроет флаг.",
 };
 
-/* ================= boot ================= */
+/* ===== boot ===== */
 $("#themeBtn").onclick = () => {
-  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light":"dark");
-  const next = cur === "dark" ? "light":"dark"; document.documentElement.dataset.theme = next; store.set("theme", next);
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");
+  const next = cur==="dark"?"light":"dark"; document.documentElement.dataset.theme=next; store.set("theme",next);
 };
-$("#resetBtn").onclick = () => { if (solved.size===0) { toast("Прогресс уже пуст"); return; } solved.clear(); store.set("solved", []); updateProgress(); openLesson(); toast("Прогресс сброшен"); };
-document.addEventListener("click", e => { if (e.target.closest("#nextBtn")){ current = Math.min(current+1, LESSONS.length-1); store.set("last", current); openLesson(); window.scrollTo({top:0,behavior:reduce?"auto":"smooth"}); } });
+$("#resetBtn").onclick = () => { if(solved.size===0){toast("Прогресс уже пуст");return;} solved.clear(); store.set("solved",[]); updateProgress(); openLesson(); toast("Прогресс сброшен"); };
 
 const savedTheme = store.get("theme", null); if (savedTheme) document.documentElement.dataset.theme = savedTheme;
 updateProgress(); openLesson();
