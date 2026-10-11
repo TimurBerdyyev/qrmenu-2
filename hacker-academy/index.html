@@ -360,10 +360,48 @@ const LESSONS = [
   <div class="card"><h3>${ICON.shield} Права и root</h3>
     <p>В Linux всё — файлы, и у каждого есть права на чтение/запись/выполнение. <code>root</code> — всемогущий пользователь. Захват root на чужой машине (<code>privilege escalation</code>) — частая цель атаки, а для защитника — то, что нужно предотвратить.</p></div>
   <div class="defend"><b>Практика.</b> Работайте под обычным пользователем, а не под root. Повышайте права только когда действительно нужно — принцип наименьших привилегий.</div>`,
-  quiz:[
-    {q:"Какой командой посмотреть содержимое файла?", a:["ls","cat","cd","pwd"], c:1, why:"cat выводит содержимое файла; ls показывает список файлов."},
-    {q:"Что такое root в Linux?", a:["Папка с паролями","Антивирус","Пользователь с полными правами (администратор)","Сетевой порт"], c:2, why:"root — суперпользователь; его захват — цель privilege escalation."},
-  ]},
+  flag:"linux_cli_basics",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.terminal} Задание</h3><p>Перед вами настоящая (учебная) оболочка. Осмотритесь и найдите флаг: подсказка — в каталоге есть скрытый файл. Нужные команды: <code>ls</code>, <code>ls -a</code>, <code>cat</code>, <code>pwd</code>, <code>whoami</code>, <code>grep</code>, <code>help</code>.</p></div>
+    <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">student@academy: ~ — учебная оболочка</span></div>
+      <div class="term-body"><pre class="out" id="shOut"></pre>
+        <div class="row" style="margin-top:10px;flex-wrap:nowrap"><span class="mono c-s">$</span><input type="text" id="shIn" class="inp mono" style="flex:1;border-radius:9px" placeholder="введите команду и Enter" autocomplete="off" spellcheck="false"></div>
+      </div></div>
+    <div class="defend"><b>Для защитника.</b> Скрытые файлы (начинаются с точки) и файлы с правами на чтение для всех — частый источник утечки секретов и ключей. Проверяйте права: <code>ls -la</code>.</div>`; },
+    wire(){
+      const FS = { "notes.txt":"список дел: обновить сервер", "readme.md":"учебная машина Кибер-Академии", ".secret":"внутри: "+FLAG("linux_cli_basics") };
+      const HELP = "доступно: ls, ls -a, cat <файл>, pwd, whoami, grep <слово> <файл>, clear, help";
+      const hist = [["c-c","# введите help, чтобы увидеть список команд"]];
+      const print = () => renderLines($("#shOut"), hist);
+      const push = (cls, t) => { hist.push([cls, t]); if (hist.length > 60) hist.shift(); };
+      print();
+      const run = raw => {
+        const cmd = raw.trim(); if (!cmd) return;
+        push("c-i", "$ " + cmd);
+        const [c, ...rest] = cmd.split(/\s+/); const arg = rest.join(" ");
+        if (c === "ls" && (arg === "-a" || arg === "-la" || arg === "-al")) push("", Object.keys(FS).join("   "));
+        else if (c === "ls") push("", Object.keys(FS).filter(f => !f.startsWith(".")).join("   "));
+        else if (c === "pwd") push("", "/home/student");
+        else if (c === "whoami") push("", "student  (обычный пользователь, не root)");
+        else if (c === "help") push("c-c", HELP);
+        else if (c === "clear") { hist.length = 0; }
+        else if (c === "cat") {
+          if (!arg) push("c-e", "cat: укажите файл");
+          else if (FS[arg] != null) { const hit = /FLAG\{/.test(FS[arg]); push(hit ? "c-s" : "", FS[arg]); }
+          else push("c-e", "cat: " + arg + ": файл не найден (подсказка: попробуйте ls -a)");
+        }
+        else if (c === "grep") {
+          const word = rest[0], file = rest[1];
+          if (!file || FS[file] == null) push("c-e", "grep: укажите слово и существующий файл");
+          else { const line = FS[file]; if (line.includes(word)) { const hit = /FLAG\{/.test(line); push(hit ? "c-s" : "", line); } else push("c-c", "(совпадений нет)"); }
+        }
+        else push("c-e", c + ": команда не найдена. введите help");
+        print(); const b = $("#shOut").parentElement; b.scrollTop = b.scrollHeight;
+      };
+      $("#shIn").addEventListener("keydown", e => { if (e.key === "Enter"){ run(e.target.value); e.target.value = ""; } });
+    }}},
+
 /* ---------------- КРИПТОГРАФИЯ ---------------- */
 { id:"b64", track:"Криптография", title:"Кодирование ≠ шифрование", sub:"Base64 туда и обратно", diff:"easy",
   theory:`
@@ -430,10 +468,33 @@ const LESSONS = [
   <div class="card"><h3>${ICON.shield} Цифровая подпись</h3>
     <p>Если наоборот — подписать приватным ключом, а проверить публичным, — получится <b>цифровая подпись</b>: доказательство, что сообщение от владельца ключа и не изменено. На этом держатся сертификаты сайтов и обновления ПО.</p></div>
   <div class="defend"><b>Практика.</b> Приватный ключ никогда не покидает владельца и не передаётся по сети. Утечка приватного ключа = полная компрометация.</div>`,
-  quiz:[
-    {q:"Какой ключ можно свободно раздавать всем?", a:["Приватный","Публичный","Оба","Ни один"], c:1, why:"Публичный ключ открыт; приватный держат в строгой тайне."},
-    {q:"Цифровая подпись подтверждает, что…", a:["Сообщение красивое","Сообщение от владельца ключа и не изменено","Сообщение зашифровано AES","Сообщение короткое"], c:1, why:"Подпись даёт аутентичность и целостность: автор и неизменность."},
-  ]},
+  flag:"only_private_key_unlocks",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.key} Задание</h3><p>Зашифруйте сообщение <b>публичным</b> ключом получателя, а затем попробуйте расшифровать. Проверьте: подходит только <b>приватный</b> ключ, а чужой/публичный — нет.</p></div>
+    <div class="lab">
+      <div class="field"><label>Сообщение</label><input type="text" id="akmsg" class="inp" value="перевод 5000 — подтверждаю"></div>
+      <div class="row"><button class="btn primary" id="akenc">${ICON.lock} Зашифровать публичным ключом</button></div>
+      <div class="field"><label>Шифртекст</label><div class="inp mono" id="akct" style="word-break:break-all;min-height:20px"></div></div>
+      <div class="field"><label>Чем расшифровать?</label><div class="chipset" id="akkeys"></div></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">decrypt — попробуй разные ключи</span></div><div class="term-body"><pre class="out" id="akout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Вывод.</b> Публичным ключом только шифруют — расшифровать им нельзя. Поэтому его и раздают всем. Расшифровать может лишь владелец приватного ключа.</div>`; },
+    wire(){
+      // toy reversible "asymmetric": public = shift +7, private = shift -7; wrong keys give garbage
+      const PUB = 7, PRIV = -7, ATTACKER = -3;
+      let ct = "";
+      const enc = () => { ct = caesar($("#akmsg").value, PUB); $("#akct").textContent = ct || "(введите сообщение)"; renderLines($("#akout"), [["c-c","# зашифровано публичным ключом. теперь выберите ключ для расшифровки"]]); };
+      $("#akenc").onclick = enc; enc();
+      const KEYS = [["Приватный ключ получателя", PRIV, true], ["Публичный ключ (тот же)", PUB, false], ["Чужой приватный ключ", ATTACKER, false]];
+      const w = $("#akkeys");
+      KEYS.forEach(([name, k, ok]) => { const b = el("button","chip",name); b.onclick = () => {
+        if (!ct){ renderLines($("#akout"), [["c-e","# сначала зашифруйте сообщение"]]); return; }
+        const dec = caesar(ct, k);
+        if (ok) renderLines($("#akout"), [["c-c","# ключ: "+name],["c-s","✓ расшифровано: "+dec],["c-s","flag -> "+FLAG("only_private_key_unlocks")]]);
+        else renderLines($("#akout"), [["c-c","# ключ: "+name],["c-e","✗ не тот ключ — получается мусор:"],["c-e",dec]]);
+      }; w.appendChild(b); });
+    }}},
 { id:"hash", track:"Криптография", title:"Пароли и хеши", sub:"Почему пароли не хранят как есть", diff:"hard",
   theory:`
   <div class="card"><h3>${ICON.lock} Односторонняя функция</h3>
@@ -595,10 +656,37 @@ const LESSONS = [
       <li>Нет второго фактора (2FA) на важных аккаунтах.</li>
     </ul></div>
   <div class="defend"><b>Защита.</b> Ограничение попыток входа (rate limiting), блокировки, длинные случайные токены, флаги cookie <code>HttpOnly</code>+<code>Secure</code>+<code>SameSite</code>, обязательный 2FA и смена токена после логина.</div>`,
-  quiz:[
-    {q:"Чем отличается аутентификация от авторизации?", a:["Ничем","Аутентификация — кто вы; авторизация — что вам можно","Авторизация — это пароль","Аутентификация нужна только админам"], c:1, why:"Сначала доказываем личность (authn), потом проверяем права (authz)."},
-    {q:"Что мешает перебору паролей?", a:["Длинный логин","Ограничение числа попыток (rate limiting) и 2FA","Красивый дизайн","Отключить cookie"], c:1, why:"Лимит попыток + второй фактор делают перебор непрактичным."},
-  ]},
+  flag:"rate_limit_stops_brute_force",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.key} Задание</h3><p>Запустите перебор паролей по словарю против учебного входа. Сначала защита выключена — перебор проходит. Затем включите <b>лимит попыток</b> и запустите снова: сравните результат.</p></div>
+    <div class="lab">
+      <div class="row"><label style="display:flex;gap:8px;align-items:center;color:var(--soft);font-size:13px"><input type="checkbox" id="rl" style="accent-color:var(--accent)"> включить rate limiting (5 попыток)</label></div>
+      <div class="row"><button class="btn primary" id="brun">${ICON.terminal} Запустить перебор</button></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">credential-bruteforce — симулятор</span></div><div class="term-body"><pre class="out" id="bout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Вывод.</b> Лимит попыток и блокировка делают перебор непрактичным, а 2FA спасает, даже если пароль угадан. Это и есть защита от brute force и credential stuffing.</div>`; },
+    wire(){
+      const DICT = ["123456","qwerty","password","letmein","dragon","sunshine","hunter2","admin","iloveyou","matrix"];
+      const REAL = "hunter2";
+      $("#brun").onclick = () => {
+        const limited = $("#rl").checked;
+        const lines = [["c-c","# атака по словарю на аккаунт admin…"]];
+        let tries = 0, done = false;
+        for (const p of DICT){
+          tries++;
+          if (limited && tries > 5){ lines.push(["c-e","⛔ попытка "+tries+": аккаунт заблокирован (превышен лимит)"]); done = true; break; }
+          if (p === REAL){ lines.push(["c-s","попытка "+tries+": "+p+"   ← ПОДОШЁЛ"]); done = true;
+            if (limited) lines.push(["c-c","# (успели до лимита, но при 2FA этого мало)"]);
+            else { lines.push(["c-e","# без защиты пароль подобран. а теперь включите rate limiting."]); }
+            break; }
+          lines.push(["c-c","попытка "+tries+": "+p+"  ✗"]);
+        }
+        if (limited && done && tries > 5) lines.push(["c-s","# перебор остановлен до подбора пароля. флаг:"],["c-s","flag -> "+FLAG("rate_limit_stops_brute_force")]);
+        typeOut($("#bout"), lines, 90);
+      };
+      renderLines($("#bout"), [["c-c","# нажмите «Запустить перебор». сначала без защиты, потом с лимитом"]]);
+    }}},
 { id:"headers", track:"Веб-уязвимости (OWASP)", title:"Заголовки безопасности", sub:"Защита в одну строку", diff:"med",
   theory:`
   <div class="card"><h3>${ICON.shield} Что умеют HTTP-заголовки</h3>
@@ -664,19 +752,73 @@ const LESSONS = [
   <div class="card"><h3>${ICON.net} Сервер как прокси атакующего</h3>
     <p><b>SSRF</b> (подделка запроса на стороне сервера): функция вроде «загрузить картинку по URL» заставляет сервер сходить по адресу, который задал пользователь. Злоумышленник подставляет внутренний адрес — <code>http://169.254.169.254/</code> (облачные метаданные) или <code>http://localhost:admin</code> — и сервер, находясь внутри сети, достаёт то, что снаружи закрыто.</p></div>
   <div class="defend"><b>Защита.</b> Белый список разрешённых адресов/доменов, запрет внутренних диапазонов (localhost, 169.254.*, 10.*, 192.168.*), отдельная сеть без доступа к метаданным, проверка после разрешения DNS.</div>`,
-  quiz:[
-    {q:"В чём суть SSRF?", a:["Пользователь ломает свой браузер","Сервер по просьбе пользователя шлёт запрос на внутренний адрес","Утечка паролей из БД","Подбор пароля"], c:1, why:"Сервер становится прокси и достаёт внутренние ресурсы, закрытые снаружи."},
-    {q:"Какой адрес особенно опасен при SSRF в облаке?", a:["google.com","169.254.169.254 (метаданные облака)","example.com","127.0.0.1:443 сайта"], c:1, why:"По этому адресу облака отдают метаданные, часто с ключами доступа."},
-  ]},
+  flag:"server_fetched_the_secret",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.net} Задание</h3><p>Это функция «предпросмотр по ссылке»: сервер сам сходит по указанному URL. Попробуйте обычный сайт, а затем внутренний адрес облачных метаданных <code>http://169.254.169.254/</code> — и увидите, что достаёт сервер изнутри сети.</p></div>
+    <div class="lab">
+      <div class="field"><label>URL для предпросмотра</label><input type="text" id="ssrfurl" class="inp" value="https://example.com/logo.png"></div>
+      <div class="chipset"><button class="chip" id="ssrfhint">подставить внутренний адрес</button></div>
+      <div class="row"><button class="btn primary" id="ssrfgo">${ICON.arrow} Загрузить на сервере</button></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">server-side fetch — симулятор</span></div><div class="term-body"><pre class="out" id="ssrfout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Вывод.</b> Сервер стоит внутри сети и видит то, что закрыто снаружи. Без белого списка и запрета внутренних диапазонов он по вашей просьбе достаёт ключи из метаданных. Это и есть SSRF.</div>`; },
+    wire(){
+      $("#ssrfhint").onclick = () => { $("#ssrfurl").value = "http://169.254.169.254/latest/meta-data/"; };
+      $("#ssrfgo").onclick = () => {
+        const u = $("#ssrfurl").value.trim();
+        const internal = /169\.254\.169\.254|localhost|127\.0\.0\.1|10\.|192\.168\.|\[::1\]/i.test(u);
+        const lines = [["c-c","# сервер выполняет запрос: GET "+esc(u)]];
+        if (internal){
+          lines.push(["c-e","200 OK — доступ к внутренним метаданным облака!"],
+            ["","iam/security-credentials/role:"],
+            ["c-n",'  {"AccessKeyId":"AKIA…","SecretAccessKey":"'+FLAG("server_fetched_the_secret")+'"}'],
+            ["c-e","# снаружи этот адрес недоступен, но сервер-то внутри. флаг выше."]);
+        } else {
+          lines.push(["c-s","200 OK — image/png, 24 KB (обычный внешний ресурс)"],["c-c","# безопасно. попробуйте внутренний адрес 169.254.169.254"]);
+        }
+        typeOut($("#ssrfout"), lines, 18);
+      };
+      renderLines($("#ssrfout"), [["c-c","# введите URL и нажмите «Загрузить на сервере»"]]);
+    }}},
 { id:"cmdi", track:"Веб-уязвимости (OWASP)", title:"Внедрение команд ОС", sub:"Ввод уходит в системный вызов", diff:"hard",
   theory:`
   <div class="card"><h3>${ICON.terminal} Когда ввод попадает в shell</h3>
     <p>Если сервер строит системную команду из пользовательского ввода — например <code>ping [адрес]</code> — то ввод <code>8.8.8.8; rm -rf /</code> выполнит и ping, и вторую команду. Символы <code>; | &amp;&amp; $( )</code> разделяют команды в shell. Это <b>command injection</b> — родственник SQL-инъекции, но на уровне операционной системы.</p></div>
   <div class="defend"><b>Защита.</b> Не собирайте команды из строк. Вызывайте программы напрямую с аргументами-массивом (без оболочки), проверяйте ввод по белому списку, работайте с минимальными правами. Лучший вариант — вообще обойтись без вызова shell.</div>`,
-  quiz:[
-    {q:"Почему ввод 8.8.8.8; rm -rf / опасен в команде ping?", a:["Длинный","Точка с запятой запускает вторую команду в shell","Это неверный IP","Ничего страшного"], c:1, why:"`;` разделяет команды — выполнится и вредоносная часть."},
-    {q:"Как правильно защититься?", a:["Запретить цифры","Вызывать программу с аргументами-массивом без оболочки и проверять ввод","Добавить капчу","Увеличить таймаут"], c:1, why:"Без shell-склейки спецсимволы перестают быть управляющими."},
-  ]},
+  flag:"semicolon_runs_a_second_command",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.terminal} Задание</h3><p>Это «сетевой диагностический» инструмент: сервер подставляет ваш ввод в команду <code>ping -c1 [адрес]</code>. Введите обычный адрес, а затем попробуйте «вырваться» из команды через <code>;</code> и дописать свою. Безопасный симулятор — ничего реально не выполняется.</p></div>
+    <div class="lab">
+      <div class="field"><label>Адрес для проверки</label><input type="text" id="cmdin" class="inp" value="8.8.8.8"></div>
+      <div class="chipset"><button class="chip" id="cmdhint">подставить: <span class="mono">8.8.8.8; cat /flag</span></button></div>
+      <div class="row"><button class="btn primary" id="cmdgo">${ICON.arrow} Выполнить ping</button></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">ping-tool — симулятор</span></div><div class="term-body"><pre class="out" id="cmdout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Вывод.</b> Символ <code>;</code> (а также <code>|</code>, <code>&amp;&amp;</code>, <code>$()</code>) разделяет команды в shell, и ваша вторая команда выполнилась. Защита — не вызывать оболочку, передавать адрес как отдельный аргумент и проверять его по белому списку.</div>`; },
+    wire(){
+      $("#cmdhint").onclick = () => { $("#cmdin").value = "8.8.8.8; cat /flag"; };
+      $("#cmdgo").onclick = () => {
+        const raw = $("#cmdin").value;
+        const full = "ping -c1 " + raw;
+        const lines = [["c-c","# сервер выполняет: "+esc(full)]];
+        const parts = raw.split(/\s*;\s*|\s*&&\s*|\s*\|\s*/).map(s => s.trim()).filter(Boolean);
+        const target = parts[0] || "";
+        lines.push(["", "PING "+esc(target)+" : 56 data bytes"], ["", "64 bytes from "+esc(target)+": time=11.4 ms"]);
+        let injected = false;
+        parts.slice(1).forEach(extra => {
+          injected = true;
+          if (/cat\s+\/?flag/.test(extra)) lines.push(["c-e","$ "+esc(extra)], ["c-s", FLAG("semicolon_runs_a_second_command")]);
+          else if (/whoami/.test(extra)) lines.push(["c-e","$ "+esc(extra)], ["c-n","root  ← и это выполнил сервер!"]);
+          else lines.push(["c-e","$ "+esc(extra)], ["c-n","(выполнена ваша вторая команда)"]);
+        });
+        if (injected) lines.push(["c-e","# вы внедрили команду через ';'. в реальной системе так крадут данные."]);
+        else lines.push(["c-c","# обычный ping. попробуйте добавить ';' и свою команду"]);
+        typeOut($("#cmdout"), lines, 20);
+      };
+      renderLines($("#cmdout"), [["c-c","# введите адрес и нажмите «Выполнить ping»"]]);
+    }}},
 { id:"owasp", track:"Веб-уязвимости (OWASP)", title:"Обзор OWASP Top 10", sub:"Карта главных веб-рисков", diff:"med",
   theory:`
   <div class="card"><h3>${ICON.list} Что это такое</h3>
@@ -701,10 +843,31 @@ const LESSONS = [
     <p>Пентест начинается с разведки (<b>reconnaissance</b>). <b>Пассивная</b> — из открытых источников (<b>OSINT</b>), не трогая цель: домены, поддомены, email, утечки, сотрудники в соцсетях, записи DNS. <b>Активная</b> — уже взаимодействие с целью (сканирование), и она заметна.</p>
     <p>Цель — понять «поверхность атаки»: сколько сервисов, какие версии, где слабые места.</p></div>
   <div class="defend"><b>Для защитника.</b> Чем меньше вы публикуете лишнего (версии, внутренние имена, email в открытом виде), тем беднее разведка противника. Регулярно гуглите сами себя — так находят утечки.</div>`,
-  quiz:[
-    {q:"Что такое пассивная разведка (OSINT)?", a:["Взлом сервера","Сбор данных из открытых источников без контакта с целью","Отправка вируса","Перебор паролей"], c:1, why:"OSINT не трогает цель — только открытые данные, поэтому незаметен."},
-    {q:"Почему активная разведка рискованнее для атакующего?", a:["Она дороже","Она взаимодействует с целью и фиксируется в логах","Она незаконна всегда","Она медленнее интернета"], c:1, why:"Любое обращение к цели оставляет следы и может сработать как сигнал тревоги."},
-  ]},
+  flag:"you_leak_more_than_you_think",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.eye} Задание</h3><p>Соберите открытую информацию об учебной компании <b>acme-shop.local</b> (всё вымышленное). Запускайте источники по очереди и смотрите, что можно узнать, не трогая саму цель.</p></div>
+    <div class="lab">
+      <div class="field"><label>Источники OSINT</label><div class="chipset" id="osint"></div></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">osint — acme-shop.local (симуляция)</span></div><div class="term-body"><pre class="out" id="osout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Вывод.</b> Поддомены, email-формат, версии и утёкшие пароли собираются из открытых источников — без единого запроса к цели. Минимизируйте публичный след и мониторьте утечки.</div>`; },
+    wire(){
+      const SRC = {
+        "DNS / поддомены":[["c-s","найдено: www, shop, dev, vpn.acme-shop.local"],["c-n","dev.acme-shop.local — тестовый стенд, часто без защиты"]],
+        "Формат email":[["c-s","шаблон: имя.фамилия@acme-shop.local"],["","найдены: a.ivanov@, admin@"]],
+        "Технологии сайта":[["c-n","nginx 1.18, WordPress 5.2 (устарел!), jQuery 1.12"],["c-c","старые версии = известные уязвимости"]],
+        "Поиск в утечках паролей":[["c-e","a.ivanov@acme-shop.local найден в старой утечке"],["c-n","пароль из дампа: "+FLAG("you_leak_more_than_you_think")],["c-e","# люди повторяют пароли — отсюда credential stuffing"]],
+      };
+      const seen = new Set(); const hist = [["c-c","# выбирайте источники — данные накапливаются"]];
+      const w = $("#osint");
+      Object.keys(SRC).forEach(name => { const b = el("button","chip",name); b.onclick = () => {
+        if (seen.has(name)) return; seen.add(name); b.setAttribute("aria-pressed","true");
+        hist.push(["c-i","> "+name]); SRC[name].forEach(l => hist.push(l));
+        typeOut($("#osout"), hist, 14);
+      }; w.appendChild(b); });
+      renderLines($("#osout"), hist);
+    }}},
 { id:"portscan", track:"Сети и разведка", title:"Сканирование портов", sub:"Какие двери открыты", diff:"med",
   theory:`
   <div class="card"><h3>${ICON.net} Что показывает скан</h3>
@@ -733,10 +896,31 @@ const LESSONS = [
     <p>Данные идут через чужое оборудование (роутеры, Wi-Fi-точки). Инструменты вроде <code>Wireshark</code> показывают проходящие пакеты. Если трафик не зашифрован (обычный HTTP), в нём видны логины, cookie, сообщения.</p>
     <p><b>MITM</b> (man-in-the-middle) — злоумышленник встаёт между вами и сервером, читает и может подменять трафик. Частый сценарий — открытый Wi-Fi.</p></div>
   <div class="defend"><b>Защита.</b> Только HTTPS/TLS — тогда перехваченный трафик бесполезен. HSTS не даёт откатиться на HTTP. В недоверенных сетях — VPN. Избегайте открытых Wi-Fi для важных действий.</div>`,
-  quiz:[
-    {q:"Почему открытый HTTP опасен в публичном Wi-Fi?", a:["Медленно грузится","Трафик не зашифрован — логины и cookie видны перехватчику","Тратит батарею","Ничего страшного"], c:1, why:"Без шифрования любой в сети читает содержимое пакетов."},
-    {q:"Что делает атака MITM?", a:["Ускоряет сеть","Встаёт между вами и сервером, читая/подменяя трафик","Шифрует данные","Создаёт резервные копии"], c:1, why:"«Человек посередине» перехватывает и может изменять обмен."},
-  ]},
+  flag:"https_turns_capture_to_noise",
+  lab:{
+    render(){ return `
+    <div class="card"><h3>${ICON.eye} Задание</h3><p>Вы в открытом Wi-Fi и «слушаете» канал (учебный снимок трафика). Переключите протокол: по <b>HTTP</b> видно содержимое пакетов, по <b>HTTPS</b> — только шифртекст. Поймайте логин и пароль в незашифрованном трафике.</p></div>
+    <div class="lab">
+      <div class="row"><div class="chipset" id="proto"></div><button class="btn primary" id="cap">${ICON.terminal} Перехватить пакет входа</button></div>
+      <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">packet-capture — open Wi-Fi (симуляция)</span></div><div class="term-body"><pre class="out" id="capout"></pre></div></div>
+    </div>
+    <div class="defend"><b>Вывод.</b> По HTTP логин и пароль видны в открытом виде — кто угодно в сети их прочитает. HTTPS превращает перехват в бесполезный шум. В чужих сетях — только HTTPS и VPN.</div>`; },
+    wire(){
+      let proto = "HTTP"; const w = $("#proto");
+      ["HTTP","HTTPS"].forEach(p => { const b = el("button","chip",p); b.setAttribute("aria-pressed", p===proto); b.onclick = () => { proto = p; [...w.children].forEach(c => c.setAttribute("aria-pressed", c.textContent===p)); }; w.appendChild(b); });
+      $("#cap").onclick = () => {
+        const lines = [["c-c","# захват пакета POST /login от соседа по сети…"]];
+        if (proto === "HTTP"){
+          lines.push(["c-e","protocol: HTTP (открытый текст)"],["","POST /login HTTP/1.1"],["","Host: shop.local"],
+            ["c-n","login=a.ivanov&password="+FLAG("https_turns_capture_to_noise")],["c-e","# логин и пароль видны прямо в пакете!"]);
+        } else {
+          lines.push(["c-s","protocol: HTTPS / TLS 1.3 (зашифровано)"],["c-c","перехваченные байты:"],
+            ["","17 03 03 00 2e a1 9f c4 7b 55 e2 90 d1 6c ff 3a …"],["c-s","# это бесполезный шум — пароль не достать. защита работает."]);
+        }
+        typeOut($("#capout"), lines, 18);
+      };
+      renderLines($("#capout"), [["c-c","# выберите протокол и перехватите пакет"]]);
+    }}},
 { id:"wifi", track:"Сети и разведка", title:"Безопасность Wi-Fi", sub:"Пароли, WPA и чужие сети", diff:"easy",
   theory:`
   <div class="card"><h3>${ICON.net} Защита беспроводной сети</h3>
