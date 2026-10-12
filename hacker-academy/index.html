@@ -1569,6 +1569,59 @@ CL("code-luhn","Практикум: пишем код","Алгоритм Лун�
     why:"Проверка контрольной суммы отсеивает опечатки и случайные номера карт ещё до обращения к платёжной системе." })
 );
 
+/* ---- batch F: ещё практикум кода ---- */
+LESSONS.push(
+CL("code-parsequery","Практикум: пишем код","Безопасный парсер query","Разбор a=1&b=2","med",
+  card(ICON.code,"Пишем разбор строки запроса","<p>Реализуйте парсер query-строки. Важно декодировать значения и аккуратно обработать пустую строку и пары без «=».</p>"),
+  { fn:"parseQuery", flag:"code_parse_query",
+    task:"Реализуйте <code>parseQuery(s)</code>: разберите строку вида <code>a=1&amp;b=2</code> в объект <code>{a:\"1\", b:\"2\"}</code>. Значения декодируйте через <code>decodeURIComponent</code>. Пустая строка — пустой объект.",
+    starter:"function parseQuery(s) {\n  var out = {};\n  // ваш код\n  return out;\n}",
+    tests:[{in:["a=1&b=2"],out:{a:"1",b:"2"}},{in:["name=bob&role=admin"],out:{name:"bob",role:"admin"}},{in:["x=hello%20world"],out:{x:"hello world"}},{in:[""],out:{}}],
+    why:"Самодельный разбор ввода — частый источник багов и инъекций; важно декодировать и не доверять структуре строки." }),
+CL("code-sqlparam","Практикум: пишем код","SQL-параметризация","Правильная защита от инъекции","med",
+  card(ICON.db,"Не склеивать, а параметризовать","<p>Вместо вставки ввода в текст запроса возвращайте запрос с плейсхолдером и отдельным списком значений — тогда ввод никогда не станет командой. Реализуйте это.</p>"),
+  { fn:"makeQuery", flag:"code_parameterized_sql",
+    task:"Реализуйте <code>makeQuery(login)</code>: вернуть объект <code>{ text: \"SELECT * FROM users WHERE login = $1\", values: [login] }</code>. Логин идёт отдельно в <code>values</code>, а не в тексте запроса — даже <code>' OR 1=1 --</code> останется безобидными данными.",
+    starter:"function makeQuery(login) {\n  // верните { text, values }\n}",
+    tests:[{in:["admin"],out:{text:"SELECT * FROM users WHERE login = $1",values:["admin"]}},{in:["admin' OR 1=1 --"],out:{text:"SELECT * FROM users WHERE login = $1",values:["admin' OR 1=1 --"]}}],
+    why:"Параметризованные запросы — единственная надёжная защита от SQL-инъекции: ввод всегда остаётся данными." }),
+CL("code-email","Практикум: пишем код","Валидатор email","Простая проверка формата","easy",
+  card(ICON.code,"Проверяем формат адреса","<p>Напишите простую проверку email: один символ <code>@</code>, домен с точкой, без пробелов. Это валидация ввода на входе.</p>"),
+  { fn:"validateEmail", flag:"code_validate_email",
+    task:"Реализуйте <code>validateEmail(s)</code>: вернуть <code>true</code>, если это похоже на email — есть ровно один <code>@</code>, до и после него есть непустые части без пробелов, а в доменной части есть точка. Иначе <code>false</code>. Подсказка: регулярное выражение.",
+    starter:"function validateEmail(s) {\n  // например: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/\n}",
+    tests:[{in:["a@b.com"],out:true},{in:["bad"],out:false},{in:["x@y"],out:false},{in:["user.name@mail.co"],out:true},{in:["a@@b.com"],out:false}],
+    why:"Проверка формата на входе отсекает мусор и часть инъекций ещё до обработки данных." }),
+CL("code-ratelimit","Практикум: пишем код","Rate limiter","Ограничение частоты запросов","hard",
+  card(ICON.code,"Своя защита от перебора","<p>Реализуйте «скользящее окно»: по списку моментов запросов определите, какие из них разрешены при лимите <code>limit</code> за окно <code>win</code>. Так защищают вход от brute force.</p>"),
+  { fn:"allowRequests", flag:"code_rate_limiter",
+    task:"Реализуйте <code>allowRequests(times, limit, win)</code>: <code>times</code> — массив моментов запросов по возрастанию. Верните массив булевых: запрос в момент <code>t</code> разрешён, если число уже разрешённых за интервал <code>(t - win, t]</code> меньше <code>limit</code> (тогда он тоже учитывается). Подсказка: держите список разрешённых моментов и убирайте те, что <code>&lt;= t - win</code>.",
+    starter:"function allowRequests(times, limit, win) {\n  var allowed = [];   // моменты разрешённых запросов\n  return times.map(function(t) {\n    // ваш код: очистить старые, решить, затем вернуть true/false\n  });\n}",
+    tests:[{in:[[0,100,200],2,1000],out:[true,true,false]},{in:[[0,100,200,1100],2,1000],out:[true,true,false,true]},{in:[[0,1,2,3],3,1000],out:[true,true,true,false]}],
+    why:"Ограничение частоты (rate limiting) делает перебор паролей и злоупотребление API непрактичными." }),
+CL("code-jwt","Практикум: пишем код","Разбор JWT","Payload читается без ключа","med",
+  card(ICON.key,"Декодируем токен","<p>Реализуйте чтение полезной нагрузки JWT. Убедитесь сами: payload — это просто Base64, он читается <b>без всякого ключа</b>, поэтому секреты туда класть нельзя.</p>"),
+  { fn:"decodeJwtPayload", flag:"code_decode_jwt",
+    task:"Реализуйте <code>decodeJwtPayload(token)</code>: токен состоит из трёх частей через точку. Возьмите вторую часть, раскодируйте из Base64 функцией <code>atob</code> и разберите JSON. Верните получившийся объект.",
+    starter:"function decodeJwtPayload(token) {\n  // split('.') -> atob(части[1]) -> JSON.parse\n}",
+    tests:[{in:["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYm9iIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxOTk5OTk5OTk5fQ==.sig123"],out:{user:"bob",role:"admin",exp:1999999999}}],
+    why:"Payload JWT не зашифрован, а лишь закодирован: любой прочитает его. Доверять можно только подписи, а секреты в токен не кладут." }),
+CL("code-hex","Практикум: пишем код","Hex-кодирование","Байты в шестнадцатеричный вид","easy",
+  card(ICON.code,"Читаем дампы","<p>Реализуйте перевод массива байтов в hex-строку — так данные показывают в дампах, хешах и пакетах.</p>"),
+  { fn:"hexEncode", flag:"code_hex_encode",
+    task:"Реализуйте <code>hexEncode(bytes)</code>: массив чисел 0–255 превратить в строку, где каждый байт — две шестнадцатеричные цифры в нижнем регистре (с ведущим нулём). Например <code>[255,0,16]</code> → <code>\"ff0010\"</code>.",
+    starter:"function hexEncode(bytes) {\n  // подсказка: (b).toString(16).padStart(2,'0')\n}",
+    tests:[{in:[[255,0,16]],out:"ff0010"},{in:[[72,105]],out:"4869"},{in:[[0,0,0]],out:"000000"}],
+    why:"Hex — стандартный способ читать «сырые» байты: хеши, адреса, содержимое пакетов и дампов памяти." }),
+CL("code-authz","Практикум: пишем код","Мини-сервер: контроль доступа","Пишем проверку прав на запросе","hard",
+  card(ICON.net,"Авторизация на сервере","<p>Реализуйте обработчик запроса, который сам решает, пускать ли пользователя. Это сердце серверной авторизации — проверка на каждый запрос, а не на клиенте.</p>"),
+  { fn:"handleRequest", flag:"code_server_side_authz",
+    task:"Реализуйте <code>handleRequest(req)</code>, где <code>req = { path, user }</code> (<code>user</code> это <code>null</code> или объект <code>{ role }</code>). Правила: пути <code>\"/\"</code> и <code>\"/login\"</code> доступны всем → верните <code>200</code>. Иначе если <code>user</code> равен <code>null</code> → <code>401</code>. Иначе если путь начинается с <code>\"/admin\"</code>, а роль не <code>\"admin\"</code> → <code>403</code>. В остальных случаях → <code>200</code>.",
+    starter:"function handleRequest(req) {\n  var publicPaths = ['/', '/login'];\n  // ваш код: верните 200 / 401 / 403\n}",
+    tests:[{in:[{path:"/",user:null}],out:200},{in:[{path:"/dashboard",user:null}],out:401},{in:[{path:"/admin",user:{role:"user"}}],out:403},{in:[{path:"/admin",user:{role:"admin"}}],out:200},{in:[{path:"/dashboard",user:{role:"user"}}],out:200}],
+    why:"Доступ проверяет сервер на каждый запрос и к каждому ресурсу — это защита от IDOR и обхода авторизации на клиенте." })
+);
+
 /* every lesson has a flag; quiz lessons get an auto-generated one */
 const TRACK_ORDER = ["Основы","Практикум: пишем код","Криптография","Веб-уязвимости (OWASP)","Сети и разведка","Атаки и вредоносное ПО","Защита (Blue Team)","Безопасная разработка","Облачная безопасность","Мобильная безопасность","Форензика и реверс","Карьера"];
 LESSONS.sort((a,b) => TRACK_ORDER.indexOf(a.track) - TRACK_ORDER.indexOf(b.track));
