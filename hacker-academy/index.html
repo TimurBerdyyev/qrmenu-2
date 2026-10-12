@@ -140,6 +140,18 @@ a{color:var(--cyan)}
 .kv .v{color:var(--soft);word-break:break-all}
 .meter{height:9px;border-radius:5px;background:var(--inset);overflow:hidden;border:1px solid var(--line)}
 .meter i{display:block;height:100%;width:0;transition:width .35s,background .35s}
+/* code editor */
+.editor{width:100%;min-height:170px;background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:var(--mono);font-size:13px;line-height:1.6;color:var(--fg);tab-size:2;-moz-tab-size:2;resize:vertical;white-space:pre;overflow:auto}
+.editor:focus{outline:none;border-color:var(--accent)}
+.tests{display:flex;flex-direction:column;gap:7px}
+.tcase{display:flex;gap:10px;align-items:flex-start;font-family:var(--mono);font-size:12.5px;padding:9px 12px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line)}
+.tcase .st{flex:none;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;margin-top:1px;font-weight:700;font-size:12px}
+.tcase.pass .st{background:var(--accent);color:#07140d}
+.tcase.fail .st{background:var(--rose);color:#fff}
+.tcase .st svg{width:12px;height:12px}
+.tcase .d{min-width:0;word-break:break-word;line-height:1.5}
+.tcase .d .exp{color:var(--muted)}
+.run-sum{font-weight:700;font-size:13px;margin-bottom:2px}
 .panes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pane{background:var(--inset);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .pane .ph{padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line)}
@@ -1417,8 +1429,148 @@ Q("security-awareness","Защита (Blue Team)","Культура безопа
    ["Что повышает культуру безопасности?",["Наказывать за сообщения об ошибках","Регулярное обучение и простота безопасного поведения","Скрывать инциденты","Один пароль на всех"],1,"Обучение и удобные безопасные процессы работают лучше страха."]])
 );
 
+/* ===== in-browser code runner (user writes JS, we run it sandboxed in a Worker with a timeout) ===== */
+function runCode(code, fnName, tests, cb){
+  const workerSrc = `self.onmessage=function(e){
+    var d=e.data, fn, results=[];
+    try{ fn=new Function(d.code+"\\n;return typeof "+d.fn+"==='function'?"+d.fn+":undefined;")(); }
+    catch(ex){ self.postMessage({error:"Ошибка в коде: "+ex.message}); return; }
+    if(typeof fn!=="function"){ self.postMessage({error:"Функция "+d.fn+"(...) не объявлена"}); return; }
+    for(var i=0;i<d.tests.length;i++){
+      var t=d.tests[i], got, ok=false;
+      try{ got=fn.apply(null,t.in); ok=JSON.stringify(got)===JSON.stringify(t.out); }
+      catch(ex){ got="⚠ "+ex.message; }
+      results.push({"in":t.in,out:t.out,got:got,ok:ok});
+    }
+    self.postMessage({results:results});
+  };`;
+  let url;
+  try {
+    url = URL.createObjectURL(new Blob([workerSrc], {type:"application/javascript"}));
+    const w = new Worker(url); let done = false;
+    const fin = data => { if (done) return; done = true; clearTimeout(timer); try{w.terminate();}catch(e){} try{URL.revokeObjectURL(url);}catch(e){} cb(data); };
+    const timer = setTimeout(() => fin({error:"Превышено время выполнения (2с). Возможно, бесконечный цикл."}), 2000);
+    w.onmessage = ev => fin(ev.data);
+    w.onerror = ev => fin({error:"Ошибка выполнения: " + (ev.message || "неизвестно")});
+    w.postMessage({code, fn:fnName, tests});
+  } catch(e){
+    try {
+      const fn = new Function(code + "\n;return typeof " + fnName + "==='function'?" + fnName + ":undefined;")();
+      if (typeof fn !== "function"){ cb({error:"Функция " + fnName + "(...) не объявлена"}); return; }
+      cb({ results: tests.map(t => { let got, ok=false; try { got = fn.apply(null, t.in); ok = JSON.stringify(got)===JSON.stringify(t.out); } catch(ex){ got = "⚠ " + ex.message; } return {in:t.in, out:t.out, got, ok}; }) });
+    } catch(ex){ cb({error:"Ошибка: " + ex.message}); }
+  }
+}
+function makeCodeLab(spec){
+  return {
+    render(){ return (
+      card(ICON.code, "Задание", "<p>" + spec.task + "</p>")
+      + '<div class="lab">'
+      +   '<div class="field"><label>Ваш код на JavaScript</label><textarea class="editor" id="editor" spellcheck="false">' + esc(spec.starter) + '</textarea></div>'
+      +   '<div class="row"><button class="btn primary" id="runBtn">' + ICON.arrow + ' Запустить тесты</button><button class="btn ghost" id="resetCode">Сбросить код</button></div>'
+      +   '<div class="field"><label>Результаты тестов</label><div class="tests" id="tests"><div class="hint">Напишите код и нажмите «Запустить тесты».</div></div></div>'
+      + '</div>'
+      + '<div class="defend"><b>Зачем это в безопасности.</b> ' + spec.why + '</div>'
+    ); },
+    wire(){
+      const ed = $("#editor");
+      $("#resetCode").onclick = () => { ed.value = spec.starter; };
+      ed.addEventListener("keydown", e => { if (e.key === "Tab"){ e.preventDefault(); const s = ed.selectionStart; ed.setRangeText("  ", s, ed.selectionEnd, "end"); } });
+      $("#runBtn").onclick = () => {
+        $("#tests").innerHTML = '<div class="hint">Выполняется…</div>';
+        runCode(ed.value, spec.fn, spec.tests, data => {
+          if (data.error){ $("#tests").innerHTML = '<div class="tcase fail"><span class="st">✕</span><span class="d c-e">' + esc(data.error) + '</span></div>'; return; }
+          const passed = data.results.filter(r => r.ok).length, total = data.results.length;
+          const rows = data.results.map(r => {
+            const call = spec.fn + "(" + r.in.map(x => JSON.stringify(x)).join(", ") + ")";
+            return '<div class="tcase ' + (r.ok ? "pass" : "fail") + '"><span class="st">' + (r.ok ? ICON.check : "✕") + '</span><span class="d">' + esc(call) + " → <b>" + esc(JSON.stringify(r.got)) + "</b>" + (r.ok ? "" : ' <span class="exp">ожидалось ' + esc(JSON.stringify(r.out)) + "</span>") + "</span></div>";
+          }).join("");
+          const head = '<div class="run-sum ' + (passed === total ? "c-s" : "c-e") + '">Пройдено ' + passed + " из " + total + "</div>";
+          const tail = passed === total ? '<div class="tcase pass"><span class="st">' + ICON.check + '</span><span class="d c-s">Все тесты пройдены! flag -> ' + FLAG(spec.flag) + "</span></div>" : "";
+          $("#tests").innerHTML = head + rows + tail;
+        });
+      };
+    }
+  };
+}
+const CL = (id,track,title,sub,diff,theory,spec) => ({ id, track, title, sub, diff, theory, flag:spec.flag, lab:makeCodeLab(spec) });
+
+/* ---- batch E: Практикум — пишем и запускаем код ---- */
+LESSONS.push(
+CL("code-escape","Практикум: пишем код","Экранирование HTML","Защита от XSS своими руками","easy",
+  card(ICON.code,"Пишем защиту от XSS","<p>Сейчас вы сами реализуете функцию, которая превращает опасный HTML в безопасный текст. Напишите код справа, запустите тесты и получите флаг, когда все пройдут.</p>"),
+  { fn:"escapeHtml", flag:"code_escape_html",
+    task:"Реализуйте <code>escapeHtml(s)</code>: замените <code>&amp;</code> на <code>&amp;amp;</code>, <code>&lt;</code> на <code>&amp;lt;</code> и <code>&gt;</code> на <code>&amp;gt;</code>. Важно: сначала заменяйте <code>&amp;</code>, иначе вы дважды экранируете уже вставленные эскейпы.",
+    starter:"function escapeHtml(s) {\n  // сначала & , потом < и >\n  return s;\n}",
+    tests:[{in:["<b>hi</b>"],out:"&lt;b&gt;hi&lt;/b&gt;"},{in:["a & b"],out:"a &amp; b"},{in:["x < y & y > z"],out:"x &lt; y &amp; y &gt; z"},{in:["обычный текст"],out:"обычный текст"}],
+    why:"Экранирование вывода — главная защита от XSS: пользовательский текст должен показываться как текст, а не как HTML." }),
+CL("code-password","Практикум: пишем код","Проверка пароля","Длина и состав","easy",
+  card(ICON.code,"Своя проверка стойкости","<p>Реализуйте правило стойкости пароля. Запустите тесты и посмотрите, какие проходят.</p>"),
+  { fn:"isStrongPassword", flag:"code_password_check",
+    task:"Реализуйте <code>isStrongPassword(pw)</code>: вернуть <code>true</code>, если длина не меньше 12 И есть хотя бы одна буква И хотя бы одна цифра. Иначе <code>false</code>.",
+    starter:"function isStrongPassword(pw) {\n  // ваш код\n}",
+    tests:[{in:["abc"],out:false},{in:["abcdefghijkl"],out:false},{in:["abcdefghijk1"],out:true},{in:["12345678901234"],out:false},{in:["Sup3rSecret99"],out:true}],
+    why:"Корректная проверка длины и состава пароля повышает стойкость к перебору. Длина важнее набора спецсимволов." }),
+CL("code-whitelist","Практикум: пишем код","Валидация по белому списку","Разрешаем только нужное","easy",
+  card(ICON.code,"Белый список надёжнее чёрного","<p>Вместо того чтобы запрещать «плохие» символы, разрешите только нужные. Напишите валидатор имени пользователя.</p>"),
+  { fn:"validateUsername", flag:"code_whitelist_input",
+    task:"Реализуйте <code>validateUsername(s)</code>: вернуть <code>true</code>, только если строка состоит из 3–16 символов, где допустимы строчная латиница, цифры и подчёркивание (<code>a-z</code>, <code>0-9</code>, <code>_</code>). Подсказка: регулярное выражение.",
+    starter:"function validateUsername(s) {\n  // ваш код (например, /^[a-z0-9_]{3,16}$/ )\n}",
+    tests:[{in:["ab"],out:false},{in:["good_name"],out:true},{in:["BadName"],out:false},{in:["drop;table"],out:false},{in:["user_123"],out:true}],
+    why:"Белый список отсекает инъекции и неожиданный ввод лучше, чем попытки перечислить всё опасное." }),
+CL("code-mask","Практикум: пишем код","Маскирование секрета","Прячем ключ в логах","easy",
+  card(ICON.code,"Не светить секреты","<p>Напишите функцию, которая прячет почти весь секрет, оставляя только хвост для опознания.</p>"),
+  { fn:"maskSecret", flag:"code_mask_secret",
+    task:"Реализуйте <code>maskSecret(s)</code>: заменить все символы, кроме последних 4, на <code>*</code>. Если длина 4 или меньше — вернуть строку без изменений.",
+    starter:"function maskSecret(s) {\n  // ваш код\n}",
+    tests:[{in:["1234567890"],out:"******7890"},{in:["abcd"],out:"abcd"},{in:["secret"],out:"**cret"},{in:["ab"],out:"ab"}],
+    why:"Маскирование ключей и номеров карт в логах и интерфейсе предотвращает утечку чувствительных данных." }),
+CL("code-traversal","Практикум: пишем код","Защита от path traversal","Запрещаем ..","easy",
+  card(ICON.code,"Не выпустить из папки","<p>Напишите проверку, которая не даёт выйти за пределы разрешённого каталога.</p>"),
+  { fn:"isSafePath", flag:"code_block_traversal",
+    task:"Реализуйте <code>isSafePath(p)</code>: вернуть <code>false</code>, если путь содержит переход вверх (<code>..</code>), иначе <code>true</code>.",
+    starter:"function isSafePath(p) {\n  // ваш код\n}",
+    tests:[{in:["/images/a.png"],out:true},{in:["../../etc/passwd"],out:false},{in:["a/../b"],out:false},{in:["docs/report.pdf"],out:true}],
+    why:"Отклонение путей с .. не даёт выйти из разрешённой папки к системным файлам (path traversal)." }),
+CL("code-caesar","Практикум: пишем код","Реализуем шифр Цезаря","Сдвиг с переносом","med",
+  card(ICON.code,"Напишите шифр","<p>Реализуйте сдвиг букв по алфавиту. Поняв, как он устроен, вы увидите, почему его так легко сломать перебором.</p>"),
+  { fn:"caesarShift", flag:"code_caesar_impl",
+    task:"Реализуйте <code>caesarShift(str, n)</code>: сдвиньте каждую латинскую букву на <code>n</code> позиций по алфавиту с переносом через край, сохраняя регистр. Остальные символы оставьте как есть.",
+    starter:"function caesarShift(str, n) {\n  // подсказка: коды 'a'=97, 'A'=65; используйте % 26\n}",
+    tests:[{in:["abc",1],out:"bcd"},{in:["xyz",3],out:"abc"},{in:["Hello, World!",1],out:"Ifmmp, Xpsme!"},{in:["abc",0],out:"abc"}],
+    why:"Реализовав шифр, вы понимаете его механику и почему 25 возможных ключей ломаются мгновенно." }),
+CL("code-xor","Практикум: пишем код","XOR-шифрование","Обратимая операция","med",
+  card(ICON.code,"XOR своими руками","<p>Реализуйте XOR над массивом байтов. Проверьте сами: примените функцию дважды одним ключом — и вернётся исходный массив.</p>"),
+  { fn:"xorBytes", flag:"code_xor_cipher",
+    task:"Реализуйте <code>xorBytes(bytes, key)</code>: принять массив чисел и число-ключ, вернуть <b>новый</b> массив, где каждый байт сложен по XOR с ключом (оператор <code>^</code>).",
+    starter:"function xorBytes(bytes, key) {\n  // верните новый массив\n}",
+    tests:[{in:[[1,2,3],1],out:[0,3,2]},{in:[[0,255],255],out:[255,0]},{in:[[65,66,67],0],out:[65,66,67]}],
+    why:"XOR — кирпичик многих шифров. Он обратим, и с коротким повторяющимся ключом сам по себе не защищает." }),
+CL("code-frequency","Практикум: пишем код","Частотный анализ","Как ломают шифры замены","med",
+  card(ICON.code,"Самая частая буква","<p>Напишите функцию, которая находит самый частый символ. Это основа взлома простых шифров замены: распределение букв в языке неслучайно.</p>"),
+  { fn:"mostFrequentChar", flag:"code_frequency_analysis",
+    task:"Реализуйте <code>mostFrequentChar(str)</code>: вернуть символ, который встречается чаще всего. При равенстве — тот, что встретился раньше.",
+    starter:"function mostFrequentChar(str) {\n  // подсчитайте частоты и выберите максимум\n}",
+    tests:[{in:["aaabb"],out:"a"},{in:["xyzzz"],out:"z"},{in:["abcabca"],out:"a"},{in:["bbaa"],out:"b"}],
+    why:"Частотный анализ вскрывает шифры простой замены: по самым частым символам угадывают буквы." }),
+CL("code-consttime","Практикум: пишем код","Сравнение за постоянное время","Защита от атак по времени","med",
+  card(ICON.code,"Не выдать секрет временем","<p>Обычное сравнение строк выходит при первом несовпадении — и по времени ответа можно угадывать секрет посимвольно. Напишите сравнение, которое проходит все символы.</p>"),
+  { fn:"constantTimeEqual", flag:"code_constant_time",
+    task:"Реализуйте <code>constantTimeEqual(a, b)</code>: вернуть <code>true</code>, если строки равны, иначе <code>false</code>. Условие: если длины равны, пройдите <b>все</b> символы, не выходя из цикла при первом несовпадении (накапливайте разницу).",
+    starter:"function constantTimeEqual(a, b) {\n  if (a.length !== b.length) return false;\n  // пройдите все символы, накапливая разницу\n}",
+    tests:[{in:["abc","abc"],out:true},{in:["abc","abd"],out:false},{in:["abc","ab"],out:false},{in:["",""],out:true}],
+    why:"Сравнение токенов и HMAC за постоянное время не позволяет угадать секрет по времени ответа (timing attack)." }),
+CL("code-luhn","Практикум: пишем код","Алгоритм Луна","Контрольная сумма карт","hard",
+  card(ICON.code,"Проверка номера карты","<p>Реализуйте алгоритм Луна — так проверяют номера банковских карт на опечатки до обращения к платёжной системе.</p>"),
+  { fn:"luhnValid", flag:"code_luhn_check",
+    task:"Реализуйте <code>luhnValid(num)</code> для строки из цифр: идя справа налево, удваивайте каждую вторую цифру (если результат больше 9 — вычтите 9), сложите все цифры; номер валиден, если сумма кратна 10.",
+    starter:"function luhnValid(num) {\n  // верните true/false\n}",
+    tests:[{in:["79927398713"],out:true},{in:["79927398714"],out:false},{in:["4111111111111111"],out:true},{in:["4111111111111112"],out:false}],
+    why:"Проверка контрольной суммы отсеивает опечатки и случайные номера карт ещё до обращения к платёжной системе." })
+);
+
 /* every lesson has a flag; quiz lessons get an auto-generated one */
-const TRACK_ORDER = ["Основы","Криптография","Веб-уязвимости (OWASP)","Сети и разведка","Атаки и вредоносное ПО","Защита (Blue Team)","Безопасная разработка","Облачная безопасность","Мобильная безопасность","Форензика и реверс","Карьера"];
+const TRACK_ORDER = ["Основы","Практикум: пишем код","Криптография","Веб-уязвимости (OWASP)","Сети и разведка","Атаки и вредоносное ПО","Защита (Blue Team)","Безопасная разработка","Облачная безопасность","Мобильная безопасность","Форензика и реверс","Карьера"];
 LESSONS.sort((a,b) => TRACK_ORDER.indexOf(a.track) - TRACK_ORDER.indexOf(b.track));
 LESSONS.forEach(l => { if (!l.flag) l.flag = l.id.replace(/-/g, "_") + "_mastered"; });
 
